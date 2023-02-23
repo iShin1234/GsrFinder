@@ -1,0 +1,35 @@
+<resources>
+    <string-array name="currentLocationList">
+        <item>Current Location</item>
+    </string-array>
+
+    <string-array name="scisList">
+        <item>SCIS B1</item>
+        <item>SCIS L1</item>
+        <item>SCIS L2</item>
+        <item>SCIS L3</item>
+        <item>SCIS L4</item>
+        <item>SCIS L5</item>
+    </string-array>
+
+    <string-array name="schoolList">
+        <item>SCIS 1</item>
+        <item>SCIS 2/SOE</item>
+    </string-array>
+
+    <string-array name="scis1GsrList">
+        <item>GSR 2-1</item>
+        <item>GSR 2-2</item>
+        <item>GSR 2-3</item>
+        <item>GSR 2-4</item>
+        <item>GSR 3-1</item>
+        <item>GSR 3-2</item>
+        <item>GSR 3-3</item>
+    </string-array>
+
+    <string-array name="scis2soeGsrList">
+        <item>GSR 2-1</item>
+        <item>GSR 2-2</item>
+    </string-array>
+
+</resources>

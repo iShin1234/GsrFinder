@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fff8fa"
+    android:hapticFeedbackEnabled="true"
+    tools:context=".MainActivity">
+
+
+    <ImageView
+        android:id="@+id/ivSmuGsrBanner"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:scaleX="2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/smu_gsr_banner" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:text="SCIS GSR\nFinder"
+        android:textColor="#032E59"
+        android:textSize="34sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ivSmuGsrBanner" />
+
+    <TextView
+        android:id="@+id/tvFrom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="From:"
+        android:textColor="#032E59"
+        app:layout_constraintStart_toStartOf="@+id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@+id/tvTitle" />
+
+    <Spinner
+        android:id="@+id/spinFrom"
+        android:layout_width="match_parent"
+        android:layout_height="50sp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/tvFrom"
+        app:layout_constraintTop_toBottomOf="@+id/tvFrom" />
+
+    <TextView
+        android:id="@+id/tvAllowLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:clickable="true"
+        android:onClick="clickAllowLocation"
+        android:text="Allow Location Access"
+        android:textColor="#24A0ED"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spinFrom" />
+
+    <TextView
+        android:id="@+id/tvTo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="To:"
+        android:textColor="#032E59"
+        app:layout_constraintStart_toStartOf="@+id/tvFrom"
+        app:layout_constraintTop_toBottomOf="@+id/spinFrom" />
+
+    <Spinner
+        android:id="@+id/spinToSchool"
+        android:layout_width="match_parent"
+        android:layout_height="50sp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="#FFFFFF"
+        android:hapticFeedbackEnabled="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/tvTo"
+        app:layout_constraintTop_toBottomOf="@+id/tvTo" />
+
+    <Spinner
+        android:id="@+id/spinToRoom"
+        android:layout_width="match_parent"
+        android:layout_height="50sp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="24dp"
+        android:background="#FFFFFF"
+        android:hapticFeedbackEnabled="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/spinToSchool"
+        app:layout_constraintTop_toBottomOf="@+id/spinToSchool" />
+
+    <Button
+        android:id="@+id/btnGetStarted"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="8dp"
+        android:text="Get Started"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
