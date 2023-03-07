@@ -1,5 +1,8 @@
 package sg.edu.smu.gsrfinder
 
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -7,6 +10,11 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+
 class MainActivity : AppCompatActivity()
 {
     override fun onCreate(savedInstanceState: Bundle?)
@@ -82,9 +90,33 @@ class MainActivity : AppCompatActivity()
         //Check if user is in SCIS
         //if Yes call -> initSpinFrom(true)
         //else -> initSpinFrom(false)
+        if (ContextCompat.checkSelfPermission(this@MainActivity,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) !==
+            PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                ActivityCompat.requestPermissions(this@MainActivity,
+                    arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
+            } else {
+                ActivityCompat.requestPermissions(this@MainActivity,
+                    arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
+            }
+            if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+                    //                Location request granted
+                    Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show()
+                }
+        }
+        else{
+            //                Location request already granted for the app
+            Toast.makeText(this, "already granted", Toast.LENGTH_SHORT).show()
+
+        }
+
 
         initSpinFrom(false);
     }
+
 
     /*
      *  1. Show all schools in smu
