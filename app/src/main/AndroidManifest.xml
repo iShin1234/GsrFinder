@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="sg.edu.smu.gsrfinder">
 
     <application
         android:allowBackup="true"
@@ -10,7 +11,14 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.GsrFinder"
-        tools:targetApi="31">
+        tools:targetApi="33"
+        tools:node="replace">
+
+        <!--arcore-api key-->
+        <meta-data
+            android:name="com.google.android.ar.API_KEY"
+            android:value="AIzaSyAnWTLJI1uOA2bTu3KSNXWSE7B65-kXIKo"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -23,6 +31,7 @@
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
 </manifest>

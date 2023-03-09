@@ -14,6 +14,11 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.ar.core.Anchor
+import com.google.ar.core.ArCoreApk
+import com.google.ar.core.Config
+import com.google.ar.core.Session
+import com.google.ar.core.exceptions.UnavailableException
 
 class MainActivity : AppCompatActivity()
 {
@@ -23,9 +28,67 @@ class MainActivity : AppCompatActivity()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // create session after checking arcore on device
+        if (isARCoreSupportedAndUpToDate()) {
+            createSession()
+        }
+
         initSpinFrom(true);
         initSpinToSchool();
         initSpinToRoom("SCIS 1");
+    }
+
+    // verify that ARCore is installed and using the current version.
+    private fun isARCoreSupportedAndUpToDate(): Boolean {
+        return when (ArCoreApk.getInstance().checkAvailability(this)) {
+            ArCoreApk.Availability.SUPPORTED_INSTALLED -> true
+            ArCoreApk.Availability.SUPPORTED_APK_TOO_OLD, ArCoreApk.Availability.SUPPORTED_NOT_INSTALLED -> {
+                try {
+                    // Request ARCore installation or update if needed.
+                    when (ArCoreApk.getInstance().requestInstall(this, true)) {
+                        ArCoreApk.InstallStatus.INSTALL_REQUESTED -> {
+                            Log.d("Error:", "ARCore installation requested.")
+                            false
+                        }
+                        ArCoreApk.InstallStatus.INSTALLED -> true
+                    }
+                } catch (e: UnavailableException) {
+                    Log.d("Error:", "ARCore not installed", e)
+                    false
+                }
+            }
+
+            ArCoreApk.Availability.UNSUPPORTED_DEVICE_NOT_CAPABLE ->
+                // This device is not supported for AR.
+                false
+
+            ArCoreApk.Availability.UNKNOWN_CHECKING -> {
+                // ARCore is checking the availability with a remote query.
+                // This function should be called again after waiting 200 ms to determine the query result.
+                true
+            }
+            ArCoreApk.Availability.UNKNOWN_ERROR, ArCoreApk.Availability.UNKNOWN_TIMED_OUT -> {
+                // There was an error checking for AR availability. This may be due to the device being offline.
+                // Handle the error appropriately.
+                false
+            }
+        }
+    }
+
+    // create session function for arcore
+    private fun createSession() {
+        // Create a new ARCore session.
+        var session = Session(this)
+
+        // Create a session config.
+        val config = Config(session)
+
+        // Do feature-specific operations here, such as enabling depth or turning on
+        // support for Augmented Faces.
+        Log.d("InSession:", "INSIDE")
+
+        // Configure the session.
+        session.configure(config)
     }
 
     /*
