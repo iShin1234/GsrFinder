@@ -17,6 +17,10 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity()
 {
+    private lateinit var spinFrom: String;
+    private lateinit var spinToSchool: String;
+    private lateinit var spinToRoom: String;
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
         Log.d("MainActivity", "onCreate()");
@@ -62,6 +66,7 @@ class MainActivity : AppCompatActivity()
             {
                 Log.d("MainActivity", "initSpinFrom() - onItemSelected()");
                 val selectedString = parent!!.getItemAtPosition(index).toString();
+                this@MainActivity.spinFrom = selectedString;
 
                 /* TODO */
                 //If user is not in SCIS
@@ -85,30 +90,36 @@ class MainActivity : AppCompatActivity()
     {
         Log.d("MainActivity", "clickAllowLocation()");
 
-        /* TODO */
         //Get current location
         //Check if user is in SCIS
         //if Yes call -> initSpinFrom(true)
         //else -> initSpinFrom(false)
         if (ContextCompat.checkSelfPermission(this@MainActivity,
-                android.Manifest.permission.ACCESS_FINE_LOCATION) !==
-            PackageManager.PERMISSION_GRANTED) {
+                ACCESS_FINE_LOCATION) !==
+            PackageManager.PERMISSION_GRANTED)
+        {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    ACCESS_FINE_LOCATION))
+            {
                 ActivityCompat.requestPermissions(this@MainActivity,
-                    arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
-            } else {
-                ActivityCompat.requestPermissions(this@MainActivity,
-                    arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
+                    arrayOf(ACCESS_FINE_LOCATION), 1)
             }
-            if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-                    //                Location request granted
-                    Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show()
-                }
+            else
+            {
+                ActivityCompat.requestPermissions(this@MainActivity,
+                    arrayOf(ACCESS_FINE_LOCATION), 1)
+            }
+
+            if (checkSelfPermission(ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED)
+            {
+                //Location request granted
+                Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show()
+            }
         }
-        else{
-            //                Location request already granted for the app
+        else
+        {
+            //Location request already granted for the app
             Toast.makeText(this, "already granted", Toast.LENGTH_SHORT).show()
 
         }
@@ -139,6 +150,8 @@ class MainActivity : AppCompatActivity()
             {
                 Log.d("MainActivity", "initSpinToSchool() - onItemSelected()");
                 val selectedString = parent!!.getItemAtPosition(index).toString();
+
+                this@MainActivity.spinToSchool = selectedString;
 
                 initSpinToRoom(selectedString);
             }
@@ -186,8 +199,7 @@ class MainActivity : AppCompatActivity()
                 Log.d("MainActivity", "showRoom() - onItemSelected()");
                 val selectedString = parent!!.getItemAtPosition(index).toString();
 
-                /* TODO */
-                //Save user selection
+                this@MainActivity.spinToRoom = selectedString;
             }
             override fun onNothingSelected(p0: AdapterView<*>?)
             {
@@ -203,9 +215,19 @@ class MainActivity : AppCompatActivity()
     {
         Log.d("MainActivity", "btnGetStartedClicked()");
 
+        Log.d("MainActivity", "btnGetStartedClicked() - spinFrom: $spinFrom");
+        Log.d("MainActivity", "btnGetStartedClicked() - spinToSchool: $spinToSchool");
+        Log.d("MainActivity", "btnGetStartedClicked() - spinToRoom: $spinToRoom");
+
+
         /* TODO */
         //If user is in SCIS, dependent on floor -> Use Anchor cloud, launch camera and show steps
         //If user is not in SCIS -> Use geospatial, direct user to SCIS first -> then use anchor cloud
+        //get user from spinToSchool
+        //get user from spinToRoom
+
+
+
     }
 
 }
