@@ -20,9 +20,12 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.Config
+import com.google.ar.core.FutureState
 import com.google.ar.core.Session
+import com.google.ar.core.VpsAvailability
 
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException
+import io.github.sceneview.SceneView
 import sg.edu.smu.gsrfinder.common.helpers.CameraPermissionHelper
 
 class MainActivity : AppCompatActivity()
@@ -231,7 +234,10 @@ class MainActivity : AppCompatActivity()
         Log.d("MainActivity", "btnGetStartedClicked() - spinToSchool: $spinToSchool");
         Log.d("MainActivity", "btnGetStartedClicked() - spinToRoom: $spinToRoom");
 
-        setupAR();
+        //Start ArActivity Intent
+        val arIntent = Intent(this, ArActivity::class.java)
+        startActivity(arIntent)
+
 
         /* TODO */
         //If user is in SCIS, dependent on floor -> Use Anchor cloud, launch camera and show steps
@@ -311,7 +317,7 @@ class MainActivity : AppCompatActivity()
         }
     }
 
-    // requestInstall(Activity, true) will triggers installation of
+    /*// requestInstall(Activity, true) will triggers installation of
     // Google Play Services for AR if necessary.
     var mUserRequestedInstall = true
 
@@ -344,9 +350,9 @@ class MainActivity : AppCompatActivity()
                         // support for Augmented Faces.
                         //https://developers.google.com/ar/develop/cloud-anchors
                         // Enable Cloud Anchors.
-                        config.cloudAnchorMode = Config.CloudAnchorMode.ENABLED
+                        //config.cloudAnchorMode = Config.CloudAnchorMode.ENABLED
 
-
+                        config.geospatialMode = Config.GeospatialMode.ENABLED
 
                         // Configure the session.
                         mSession.configure(config);
@@ -379,28 +385,28 @@ class MainActivity : AppCompatActivity()
                 .show()
             return
         }
-    }
+    }*/
 
     override fun onResume()
     {
         Log.d("MainActivity", "onResume()");
         super.onResume()
     }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        results: IntArray
-    ) {
-        Log.d("MainActivity", "onRequestPermissionsResult()");
-        super.onRequestPermissionsResult(requestCode, permissions, results)
-        if (!CameraPermissionHelper.hasCameraPermission(this))
-        {
-            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {
-                // Permission denied with checking "Do not ask again".
-                CameraPermissionHelper.launchPermissionSettings(this)
-            }
-            finish()
-        }
-    }
+//
+//    override fun onRequestPermissionsResult(
+//        requestCode: Int,
+//        permissions: Array<String>,
+//        results: IntArray
+//    ) {
+//        Log.d("MainActivity", "onRequestPermissionsResult()");
+//        super.onRequestPermissionsResult(requestCode, permissions, results)
+//        if (!CameraPermissionHelper.hasCameraPermission(this))
+//        {
+//            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {
+//                // Permission denied with checking "Do not ask again".
+//                CameraPermissionHelper.launchPermissionSettings(this)
+//            }
+//            finish()
+//        }
+//    }
 }
