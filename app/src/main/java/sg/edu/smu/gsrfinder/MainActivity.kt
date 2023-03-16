@@ -25,8 +25,12 @@ import com.google.ar.core.Session
 import com.google.ar.core.VpsAvailability
 
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException
+import com.google.firebase.FirebaseApp
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import io.github.sceneview.SceneView
 import sg.edu.smu.gsrfinder.common.helpers.CameraPermissionHelper
+import sg.edu.smu.gsrfinder.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity()
 {
@@ -34,13 +38,13 @@ class MainActivity : AppCompatActivity()
     private lateinit var spinToSchool: String;
     private lateinit var spinToRoom: String;
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var database: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
         Log.d("MainActivity", "onCreate()");
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         initSpinFrom(true);
         initSpinToSchool();
         initSpinToRoom("SCIS 1");
@@ -233,6 +237,26 @@ class MainActivity : AppCompatActivity()
         Log.d("MainActivity", "btnGetStartedClicked() - spinFrom: $spinFrom");
         Log.d("MainActivity", "btnGetStartedClicked() - spinToSchool: $spinToSchool");
         Log.d("MainActivity", "btnGetStartedClicked() - spinToRoom: $spinToRoom");
+
+        FirebaseApp.initializeApp(this)
+        database = FirebaseDatabase.getInstance().getReference("test")
+        val test = test("1", "scis1")
+        database.child("name").get().addOnSuccessListener {
+            if (it.exists()){
+                val user = it.child("user").value
+                Log.d("TAG", user.toString())
+                Toast.makeText(this, user.toString(), Toast.LENGTH_SHORT).show()
+            }
+            else{
+                Log.d("TAG", "DOES NOT XIST")
+                Toast.makeText(this, "Does not exist", Toast.LENGTH_SHORT).show()
+            }
+        }.addOnFailureListener {
+            Log.d("TAG", "FAILS")
+            Toast.makeText(this, "FAILS", Toast.LENGTH_SHORT).show()
+
+        }
+
 
         //Start ArActivity Intent
         val arIntent = Intent(this, ArActivity::class.java)
