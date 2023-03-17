@@ -39,7 +39,9 @@ class ArFragment : Fragment(R.layout.fragment_ar) {
             loadingView.isGone = !value
         }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?)
+    {
+        Log.d("ArFragment", "onViewCreated()");
         super.onViewCreated(view, savedInstanceState)
 
         val topGuideline = view.findViewById<Guideline>(R.id.topGuideline)
@@ -96,27 +98,41 @@ class ArFragment : Fragment(R.layout.fragment_ar) {
         }
     }
 
-    private fun actionButtonClicked() {
+    private fun actionButtonClicked()
+    {
+        Log.d("ArFragment", "actionButtonClicked()");
         when (mode) {
-            Mode.HOME -> {}
+            Mode.HOME -> {
+                Log.d("ArFragment", "Mode.HOME");
+            }
             Mode.HOST -> {
+                Log.d("ArFragment", "Mode.HOST");
                 val frame = sceneView.currentFrame ?: return
 
-                if (!cloudAnchorNode.isAnchored) {
+                if (!cloudAnchorNode.isAnchored)
+                {
+                    Log.d("ArFragment", "cloudAnchorNode.anchor()");
                     cloudAnchorNode.anchor()
                 }
 
-                if (sceneView.arSession?.estimateFeatureMapQualityForHosting(frame.camera.pose) == Session.FeatureMapQuality.INSUFFICIENT) {
+                if (sceneView.arSession?.estimateFeatureMapQualityForHosting(frame.camera.pose) == Session.FeatureMapQuality.INSUFFICIENT)
+                {
+                    Log.d("ArFragment", "INSUFFICIENT");
                     Toast.makeText(context, R.string.insufficient_visual_data, Toast.LENGTH_LONG)
                         .show()
                     return
                 }
 
                 cloudAnchorNode.hostCloudAnchor { anchor: Anchor, success: Boolean ->
-                    if (success) {
+                    if (success)
+                    {
+                        Log.d("ArFragment", "success");
                         editText.setText(anchor.cloudAnchorId)
                         selectMode(Mode.RESET)
-                    } else {
+                    }
+                    else
+                    {
+                        Log.d("ArFragment", "fail");
                         Toast.makeText(context, R.string.error_occurred, Toast.LENGTH_LONG).show()
                         Log.d(
                             TAG,
@@ -131,12 +147,19 @@ class ArFragment : Fragment(R.layout.fragment_ar) {
                     isEnabled = true
                 }
             }
-            Mode.RESOLVE -> {
+            Mode.RESOLVE ->
+            {
+                Log.d("ArFragment", "Mode.RESOLVE");
                 cloudAnchorNode.resolveCloudAnchor(editText.text.toString()) { anchor: Anchor, success: Boolean ->
-                    if (success) {
+                    if (success)
+                    {
+                        Log.d("ArFragment", "success");
                         cloudAnchorNode.isVisible = true
                         selectMode(Mode.RESET)
-                    } else {
+                    }
+                    else
+                    {
+                        Log.d("ArFragment", "fail");
                         Toast.makeText(context, R.string.error_occurred, Toast.LENGTH_LONG).show()
                         Log.d(
                             TAG,
@@ -151,14 +174,17 @@ class ArFragment : Fragment(R.layout.fragment_ar) {
                     isEnabled = false
                 }
             }
-            Mode.RESET -> {
+            Mode.RESET ->
+            {
+                Log.d("ArFragment", "Mode.RESET");
                 cloudAnchorNode.detachAnchor()
                 selectMode(Mode.HOME)
             }
         }
     }
 
-    private fun selectMode(mode: Mode) {
+    private fun selectMode(mode: Mode)
+    {
         this.mode = mode
 
         when (mode) {
