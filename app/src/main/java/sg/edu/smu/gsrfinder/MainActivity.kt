@@ -19,14 +19,10 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.ar.core.ArCoreApk
-import com.google.ar.core.Config
-import com.google.ar.core.FutureState
-import com.google.ar.core.Session
-import com.google.ar.core.VpsAvailability
-
-import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException
-import io.github.sceneview.SceneView
-import sg.edu.smu.gsrfinder.common.helpers.CameraPermissionHelper
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 class MainActivity : AppCompatActivity()
 {
@@ -40,6 +36,28 @@ class MainActivity : AppCompatActivity()
         Log.d("MainActivity", "onCreate()");
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val database = FirebaseDatabase.getInstance();
+        val ref = database.reference.child("User")
+        ref.child("TempName").setValue("Hello World");
+
+        val ref2 = database.reference;
+
+        ref2.addValueEventListener(object : ValueEventListener
+        {
+            override fun onDataChange(dataSnapshot: DataSnapshot)
+            {
+                Log.d("MainActivity", "onDataChange()");
+                val value = dataSnapshot.child("User").child("TempName").value.toString();
+                Log.d("MainActivity", "Value is: $value")
+            }
+
+            override fun onCancelled(error: DatabaseError)
+            {
+                Log.w("MainActivity", "Failed to read value.", error.toException())
+            }
+        })
+
 
         initSpinFrom(true);
         initSpinToSchool();
