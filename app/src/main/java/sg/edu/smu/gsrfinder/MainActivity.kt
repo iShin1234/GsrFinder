@@ -37,26 +37,26 @@ class MainActivity : AppCompatActivity()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val database = FirebaseDatabase.getInstance();
-        val ref = database.reference.child("User")
-        ref.child("TempName").setValue("Hello World");
-
-        val ref2 = database.reference;
-
-        ref2.addValueEventListener(object : ValueEventListener
-        {
-            override fun onDataChange(dataSnapshot: DataSnapshot)
-            {
-                Log.d("MainActivity", "onDataChange()");
-                val value = dataSnapshot.child("User").child("TempName").value.toString();
-                Log.d("MainActivity", "Value is: $value")
-            }
-
-            override fun onCancelled(error: DatabaseError)
-            {
-                Log.w("MainActivity", "Failed to read value.", error.toException())
-            }
-        })
+//        val database = FirebaseDatabase.getInstance();
+//        val ref = database.reference.child("User")
+//        ref.child("TempName").setValue("Hello World");
+//
+//        val ref2 = database.reference;
+//
+//        ref2.addValueEventListener(object : ValueEventListener
+//        {
+//            override fun onDataChange(dataSnapshot: DataSnapshot)
+//            {
+//                Log.d("MainActivity", "onDataChange()");
+//                val value = dataSnapshot.child("User").child("TempName").value.toString();
+//                Log.d("MainActivity", "Value is: $value")
+//            }
+//
+//            override fun onCancelled(error: DatabaseError)
+//            {
+//                Log.w("MainActivity", "Failed to read value.", error.toException())
+//            }
+//        })
 
 
         initSpinFrom(true);
@@ -253,7 +253,7 @@ class MainActivity : AppCompatActivity()
         Log.d("MainActivity", "btnGetStartedClicked() - spinToRoom: $spinToRoom");
 
         //Start ArActivity Intent
-        val arIntent = Intent(this, ArActivity::class.java)
+        val arIntent = Intent(this, CloudAnchorActivity::class.java)
         startActivity(arIntent)
 
 
