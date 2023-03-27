@@ -533,6 +533,9 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
                     roomCode
                 )
             Preconditions.checkNotNull(resolveListener, "The resolve listener cannot be null.")
+
+            Log.d("CloudAnchorActivity", "Resolving cloud anchor with ID $cloudAnchorId");
+
             cloudManager.resolveCloudAnchor(
                 cloudAnchorId, resolveListener, SystemClock.uptimeMillis()
             )

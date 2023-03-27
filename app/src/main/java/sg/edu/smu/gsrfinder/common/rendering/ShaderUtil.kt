@@ -131,68 +131,6 @@ object ShaderUtil {
                 sb.append(line).append("\n")
             }
         }
-
-
-
-
         return sb.toString();
-//
-//
-//        while (reader.readLine().also { line = it } != null) {
-//            val tokens = line.split(" ".toRegex()).toTypedArray()
-//            if (tokens[0] == "#include") {
-//                var includeFilename = tokens[1]
-//                includeFilename = includeFilename.replace("\"", "")
-//                if (includeFilename == filename) {
-//                    throw IOException("Do not include the calling file.")
-//                }
-//                sb.append(readShaderFileFromAssets(context, includeFilename))
-//            } else {
-//                sb.append(line).append("\n")
-//            }
-//        }
-//        return sb.toString()
-
-        /* try (InputStream inputStream = context.getAssets().open(filename);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    String[] tokens = line.split(" ", -1);
-                    if (tokens[0].equals("#include")) {
-                        String includeFilename = tokens[1];
-                        includeFilename = includeFilename.replace("\"", "");
-                        if (includeFilename.equals(filename)) {
-                            throw new IOException("Do not include the calling file.");
-                        }
-                        sb.append(readShaderFileFromAssets(context, includeFilename));
-                    } else {
-                        sb.append(line).append("\n");
-                    }
-                }
-                return sb.toString();
-            }*/
-
-/*        context.assets.open(filename).use { inputStream ->
-            BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                val sb = StringBuilder()
-                var line: String
-                while (reader.readLine().also { line = it } != null) {
-                    val tokens = line.split(" ".toRegex()).toTypedArray()
-                    if (tokens[0] == "#include") {
-                        var includeFilename = tokens[1]
-                        includeFilename = includeFilename.replace("\"", "")
-                        if (includeFilename == filename) {
-                            throw IOException("Do not include the calling file.")
-                        }
-                        sb.append(readShaderFileFromAssets(context, includeFilename))
-                    } else {
-                        sb.append(line).append("\n")
-                    }
-                }
-                return sb.toString()
-            }
-        }*/
-//        return "";
     }
 }
