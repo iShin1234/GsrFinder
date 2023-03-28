@@ -25,9 +25,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.annotation.GuardedBy
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
@@ -161,7 +159,91 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
         firebaseManager = FirebaseManager(this)
         currentMode = HostResolveMode.NONE
         sharedPreferences = getSharedPreferences(PREFERENCE_FILE_KEY, MODE_PRIVATE)
+
+        initSpinToSchool()
     }
+
+    /*
+     *  1. Show all schools in smu
+     */
+    private fun initSpinToSchool()
+    {
+        Log.d("MainActivity", "initSpinToSchool()");
+
+        val list: Array<String>;
+
+        val schoolList = resources.getStringArray(R.array.schoolList);
+
+        val spinAdapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, schoolList);
+        val spinToSchool = findViewById<Spinner>(R.id.spinToSchool)
+        spinToSchool.adapter = spinAdapter
+
+        spinToSchool.onItemSelectedListener = object: AdapterView.OnItemSelectedListener
+        {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, index: Int, id: Long)
+            {
+                Log.d("CloudAnchorActivity", "initSpinToSchool() - onItemSelected()");
+                val selectedString = parent!!.getItemAtPosition(index).toString();
+
+//                spinToSchool = selectedString;
+                Log.d("STRING1: ", selectedString);
+
+                initSpinToRoom(selectedString);
+            }
+            override fun onNothingSelected(p0: AdapterView<*>?)
+            {
+                Log.d("CloudAnchorActivity", "initSpinToSchool() - onNothingSelected()");
+            }
+        }
+    }
+
+    /*
+     *  1. Show all gsr that belongs to the particular school
+     */
+    private fun initSpinToRoom(school: String)
+    {
+        Log.d("MainActivity", "initSpinToRoom()");
+
+        when(school)
+        {
+            "SCIS 1" ->
+            {
+                Log.d("MainActivity", "initSpinToRoom() - User Selected SCIS 1");
+                showRoom(resources.getStringArray(R.array.scis1GsrList));
+            }
+            "SCIS 2/SOE" ->
+            {
+                Log.d("MainActivity", "initSpinToRoom() - User Selected SCIS 2/SOE");
+                showRoom(resources.getStringArray(R.array.scis2soeGsrList));
+            }
+        }
+    }
+
+    private fun showRoom(gsrList: Array<String>)
+    {
+        Log.d("MainActivity", "showRoom()");
+
+        val spinAdapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, gsrList);
+        val spinToRoom = findViewById<Spinner>(R.id.spinToRoom)
+        spinToRoom.adapter = spinAdapter
+
+        spinToRoom.onItemSelectedListener = object: AdapterView.OnItemSelectedListener
+        {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, index: Int, id: Long)
+            {
+                Log.d("CloudAnchorActivity", "showRoom() - onItemSelected()");
+                val selectedString = parent!!.getItemAtPosition(index).toString();
+                Log.d("STRING2: ", selectedString);
+
+//                this@CloudAnchorActivity.spinToRoom = selectedString;
+            }
+            override fun onNothingSelected(p0: AdapterView<*>?)
+            {
+                Log.d("CloudAnchorActivity", "showRoom() - onNothingSelected()");
+            }
+        }
+    }
+
 
     override fun onDestroy() {
         // Clear all registered listeners.

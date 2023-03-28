@@ -33,6 +33,7 @@ class PrivacyNoticeDialogFragment : DialogFragment() {
 
     /** Listener for a privacy notice response.  */
     interface NoticeDialogListener {
+
         /** Invoked when the user accepts sharing experience.  */
         fun onDialogPositiveClick(dialog: DialogFragment?)
     }
