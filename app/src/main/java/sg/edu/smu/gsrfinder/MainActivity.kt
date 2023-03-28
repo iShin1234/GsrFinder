@@ -1,32 +1,28 @@
 package sg.edu.smu.gsrfinder
 
-import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.location.Location
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.material.navigation.NavigationView
 import com.google.ar.core.ArCoreApk
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+
 
 class MainActivity : AppCompatActivity()
 {
@@ -35,6 +31,7 @@ class MainActivity : AppCompatActivity()
     private lateinit var spinToRoom: String;
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var drawerLayout: DrawerLayout
+    private lateinit var navigationView: NavigationView;
     private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -54,6 +51,19 @@ class MainActivity : AppCompatActivity()
 
         // to make the Navigation drawer icon always appear on the action bar
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        navigationView = findViewById<NavigationView>(R.id.naviationView)
+        navigationView.setNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.admin -> {
+                    // handle click
+                    Log.d("CHECK", "IN")
+                    AdminClick()
+                    true
+                }
+                else -> false
+            }
+        }
+
 
 //        val database = FirebaseDatabase.getInstance();
 //        val ref = database.reference.child("User")
@@ -89,7 +99,6 @@ class MainActivity : AppCompatActivity()
     // drawer when the icon is clicked
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
-            AdminClick()
             true
 
         } else {
@@ -97,7 +106,6 @@ class MainActivity : AppCompatActivity()
             }
 
         }
-
 
     /*
      *  1. <if> User is in SCIS, Get the gsr list from values/spinner_lists.xml
