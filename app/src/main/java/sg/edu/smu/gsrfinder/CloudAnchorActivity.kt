@@ -51,6 +51,7 @@ import com.google.ar.core.exceptions.UnavailableApkTooOldException
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException
 import com.google.common.base.Preconditions
+import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import java.io.IOException
 import javax.microedition.khronos.egl.EGLConfig
@@ -80,7 +81,6 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
     private var installRequested = false
 
     // Temporary matrices allocated here to reduce number of allocations for each frame.
-    private val anchorMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
 
@@ -97,6 +97,11 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
     private var resolveButton: Button? = null
     private var roomCodeText: TextView? = null
     private var sharedPreferences: SharedPreferences? = null
+
+    //Array to store anchor
+    private var anchors: ArrayList<HashMap<String, Any>> = ArrayList()
+
+//    private var displayAnchorFnList: ArrayList<DisplayAnchor> = ArrayList();
 
     @GuardedBy("singleTapLock")
     private var queuedSingleTap: MotionEvent? = null
@@ -354,7 +359,8 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
         GLES20.glViewport(0, 0, width, height)
     }
 
-    override fun onDrawFrame(gl: GL10) {
+    override fun onDrawFrame(gl: GL10)
+    {
         // Clear screen to notify driver it should not load any pixels from previous frame.
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
         if (session == null) {
@@ -404,34 +410,58 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
                 camera.displayOrientedPose,
                 projectionMatrix
             )
+            Log.d(TAG, "onDrawFrame()");
 
             // Check if the anchor can be visualized or not, and get its pose if it can be.
             var shouldDrawAnchor = false
-            synchronized(anchorLock) {
-                if (anchor != null && anchor!!.getTrackingState() == TrackingState.TRACKING) {
-                    // Get the current pose of an Anchor in world space. The Anchor pose is updated
-                    // during calls to session.update() as ARCore refines its estimate of the world.
-                    anchor!!.getPose().toMatrix(anchorMatrix, 0)
-                    shouldDrawAnchor = true
+            synchronized(anchorLock)
+            {
+                if(anchors.isNotEmpty())
+                {
+                    Log.d(TAG, "anchors is not null");
+                    Log.d(TAG, anchors.toString());
+
+                    for(i in 0 until anchors.size)
+                    {
+                        val anchorMap = anchors[i];
+                        val anchor = anchorMap["anchor"] as Anchor;
+
+                        Log.d(TAG, "anchors[$i] is not null");
+
+                        if (anchor.trackingState == TrackingState.TRACKING)
+                        {
+                            // Get the current pose of an Anchor in world space. The Anchor pose is updated
+                            // during calls to session.update() as ARCore refines its estimate of the world.
+                            anchor.pose.toMatrix(anchorMap["matrix"] as FloatArray, 0)
+
+                            anchorMap["shouldDrawAnchor"] = true
+                        }
+                    }
                 }
             }
 
-            // Visualize anchor.
-            if (shouldDrawAnchor) {
-                val colorCorrectionRgba = FloatArray(4)
-                frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
+            if(anchors.isNotEmpty())
+            {
+                for(i in 0 until anchors.size)
+                {
+                    val anchorMap = anchors[i];
+                    val shouldDrawAnchor = anchorMap["shouldDrawAnchor"] as Boolean;
+                    val newAnchorMatrix = anchorMap["matrix"] as FloatArray;
 
-                // Update and draw the model and its shadow.
-                val scaleFactor = 1.0f
-                virtualObject.updateModelMatrix(anchorMatrix, scaleFactor)
-                virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor)
-                virtualObject.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, OBJECT_COLOR)
-                virtualObjectShadow.draw(
-                    viewMatrix,
-                    projectionMatrix,
-                    colorCorrectionRgba,
-                    OBJECT_COLOR
-                )
+                    if(shouldDrawAnchor)
+                    {
+                        Log.d(TAG, "shouldDrawAnchor true for $i");
+                        val colorCorrectionRgba = FloatArray(4)
+                        frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
+
+                        // Update and draw the model and its shadow.
+                        val scaleFactor = 1.0f
+                        virtualObject.updateModelMatrix(newAnchorMatrix, scaleFactor)
+                        virtualObjectShadow.updateModelMatrix(newAnchorMatrix, scaleFactor)
+                        virtualObject.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, OBJECT_COLOR)
+                        virtualObjectShadow.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, OBJECT_COLOR)
+                    }
+                }
             }
         } catch (t: Throwable) {
             // Avoid crashing the application due to unhandled exceptions.
@@ -439,13 +469,76 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
         }
     }
 
+//    private inner class DisplayAnchor(frame: Frame, cloudAnchorId: String) {
+//        private var anchorMatrix = FloatArray(16)
+//        private val viewMatrix = FloatArray(16)
+//        private val projectionMatrix = FloatArray(16)
+//        private val cloudAnchorId = cloudAnchorId;
+//        private val frame = frame;
+//
+//        fun getAnchorId(): String
+//        {
+//            return cloudAnchorId;
+//        }
+//
+//        fun displayAnchor()
+//        {
+//            Log.d(TAG, "Drawing anchor");
+//
+//            val colorCorrectionRgba = FloatArray(4)
+//            frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
+//
+//            // Update and draw the model and its shadow.
+//            val scaleFactor = 1.0f
+//            virtualObject.updateModelMatrix(anchorMatrix, scaleFactor)
+//            virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor)
+//            virtualObject.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, OBJECT_COLOR)
+//            virtualObjectShadow.draw(
+//                viewMatrix,
+//                projectionMatrix,
+//                colorCorrectionRgba,
+//                OBJECT_COLOR
+//            )
+//        }
+//    }
+
+//    private fun displayAnchor(frame: Frame)
+//    {
+//        // Visualize anchor.
+//        if (shouldDrawAnchor) {
+//            Log.d(TAG, "Drawing anchor");
+//            val colorCorrectionRgba = FloatArray(4)
+//            frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
+//
+//            // Update and draw the model and its shadow.
+//            val scaleFactor = 1.0f
+//            virtualObject.updateModelMatrix(anchorMatrix, scaleFactor)
+//            virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor)
+//            virtualObject.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, OBJECT_COLOR)
+//            virtualObjectShadow.draw(
+//                viewMatrix,
+//                projectionMatrix,
+//                colorCorrectionRgba,
+//                OBJECT_COLOR
+//            )
+//        }
+//
+//    }
+
     /** Sets the new value of the current anchor. Detaches the old anchor, if it was non-null.  */
     private fun setNewAnchor(newAnchor: Anchor?) {
-        synchronized(anchorLock) {
-            if (anchor != null) {
-                anchor!!.detach()
+
+        synchronized(anchorLock)
+        {
+            if (newAnchor != null)
+            {
+//                anchors.add(newAnchor);
+                val anchorMap = HashMap<String, Any>()
+                anchorMap["matrix"] = FloatArray(16);
+                anchorMap["anchor"] = newAnchor;
+                anchorMap["shouldDrawAnchor"] = false;
+                anchors.add(anchorMap);
             }
-            anchor = newAnchor
         }
     }
 
@@ -517,7 +610,22 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
     }
 
     /** Callback function invoked when the user presses the OK button in the Resolve Dialog.  */
-    private fun onRoomCodeEntered(location: String) {
+    private fun onRoomCodeEntered(location: String)
+    {
+        if (anchors.isNotEmpty())
+        {
+            for(i in 0 until anchors!!.size)
+            {
+                var anchorMap = anchors[i];
+                if(anchorMap.containsKey("anchor"))
+                {
+                    var anchor = anchorMap["anchor"] as Anchor;
+                    anchor.detach();
+                }
+            }
+            anchors.clear()
+        }
+
         currentMode = HostResolveMode.RESOLVING
         hostButton!!.isEnabled = false
         resolveButton?.setText(R.string.cancel)
@@ -527,25 +635,39 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
         // Register a new listener for the given room.
         firebaseManager?.registerNewListenerForList(
             location
-        ) { cloudAnchorList ->
+        ) { postSnapshot ->
             // When the cloud anchor ID is available from Firebase.
-            Log.d(TAG, cloudAnchorList as String)
+//            Log.d(TAG, cloudAnchorList as String)
 
-//            for(child in cloudAnchorList)
-//            {
-//                Log.d(TAG, obj["hotspot_list"] as String);
-//            }
+//            Preconditions.checkNotNull(cloudAnchorList, "The resolve listener cannot be null.")
 
-//            val resolveListener: CloudAnchorResolveStateListener =
-//                CloudAnchorResolveStateListener(
-//
-//                )
+//            Log.d("CloudAnchorActivity", "Resolving cloud anchor with ID $cloudAnchorList");
 
-            Preconditions.checkNotNull(cloudAnchorList, "The resolve listener cannot be null.")
+            Log.d(TAG, "Resolving cloud anchor with ID");
+            Log.d(TAG, postSnapshot.toString());
+            val snapShotObj = postSnapshot as DataSnapshot;
 
-            Log.d("CloudAnchorActivity", "Resolving cloud anchor with ID $cloudAnchorList");
+            val roomCode = snapShotObj.key.toString().toLong();
+            val valObj = snapShotObj.child("hosted_anchor_id").value
+            if (valObj != null)
+            {
+                val anchorId = valObj.toString()
+                if (!anchorId.isEmpty())
+                {
+                    Log.d(TAG, roomCode.toString());
+                    Log.d(TAG, anchorId);
+
+                    val resolveListener: CloudAnchorResolveStateListener =
+                        CloudAnchorResolveStateListener(
+                            roomCode
+                        )
+
+                    cloudManager.resolveCloudAnchor(
+                        anchorId, resolveListener, SystemClock.uptimeMillis())
 
 
+                }
+            }
         }
 
     }
@@ -642,6 +764,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
             if (anchor != null) {
                 cloudAnchorId = anchor.cloudAnchorId
             }
+            Log.d(TAG, "RoomCodeAndCloudAnchorIdListener - onCloudTaskComplete() - Setting new Anchor")
             setNewAnchor(anchor)
             checkAndMaybeShare()
         }
@@ -671,6 +794,8 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
             snackbarHelper.showMessageWithDismiss(
                 this@CloudAnchorActivity, getString(R.string.snackbar_resolve_success)
             )
+            Log.d(TAG, "CloudAnchorResolveStateListener - onCloudTaskComplete() - Setting new Anchor")
+
             setNewAnchor(anchor)
         }
 
