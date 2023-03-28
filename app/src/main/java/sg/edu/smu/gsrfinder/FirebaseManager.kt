@@ -16,7 +16,6 @@
 package sg.edu.smu.gsrfinder
 
 import android.content.Context
-import android.renderscript.Sampler.Value
 import android.util.Log
 import com.google.common.base.Preconditions
 import com.google.firebase.FirebaseApp
@@ -125,7 +124,21 @@ internal class FirebaseManager(context: Context?) {
             allRoomListener = object : ValueEventListener
             {
                 override fun onDataChange(snapshot: DataSnapshot) {
+
+                    Log.d(TAG,"Printing Snapshot.toString()");
                     Log.d(TAG, snapshot.toString());
+                    if(snapshot.exists())
+                    {
+                        for (postSnapshot in snapshot.children) {
+                            val valObj = postSnapshot.child(KEY_ANCHOR_ID).value
+                            if (valObj != null) {
+                                val anchorId = valObj.toString()
+                                if (!anchorId.isEmpty()) {
+                                    listener.invoke(anchorId)
+                                }
+                            }
+                        }
+                    }
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
