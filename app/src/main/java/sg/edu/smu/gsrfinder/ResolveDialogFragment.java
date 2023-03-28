@@ -37,7 +37,7 @@ public class ResolveDialogFragment extends DialogFragment {
      *
      * @param dialogValue the long value from the dialog box
      */
-    void onOkPressed(Long dialogValue);
+    void onOkPressed(String dialogValue);
   }
 
   private EditText roomCodeField;
@@ -64,7 +64,7 @@ public class ResolveDialogFragment extends DialogFragment {
             (dialog, which) -> {
               Editable roomCodeText = roomCodeField.getText();
               if (okListener != null && roomCodeText != null && roomCodeText.length() > 0) {
-                Long longVal = Long.valueOf(roomCodeText.toString());
+                String longVal = roomCodeText.toString();
                 okListener.onOkPressed(longVal);
               }
             })

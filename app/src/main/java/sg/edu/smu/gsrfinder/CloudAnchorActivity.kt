@@ -496,7 +496,8 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
 
     private fun onPrivacyAcceptedForResolve() {
         val dialogFragment = ResolveDialogFragment()
-        dialogFragment.setOkListener { roomCode: Long -> onRoomCodeEntered(roomCode) }
+//        dialogFragment.setOkListener { roomCode: Long -> onRoomCodeEntered(roomCode) }
+        dialogFragment.setOkListener { roomCode: String -> onRoomCodeEntered(roomCode) }
         dialogFragment.show(supportFragmentManager, "ResolveDialog")
     }
 
@@ -513,6 +514,40 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
         setNewAnchor(null)
         snackbarHelper.hide(this)
         cloudManager.clearListeners()
+    }
+
+    /** Callback function invoked when the user presses the OK button in the Resolve Dialog.  */
+    private fun onRoomCodeEntered(location: String) {
+        currentMode = HostResolveMode.RESOLVING
+        hostButton!!.isEnabled = false
+        resolveButton?.setText(R.string.cancel)
+//        roomCodeText!!.text = roomCode.toString()
+        snackbarHelper.showMessageWithDismiss(this, getString(R.string.snackbar_on_resolve))
+
+        // Register a new listener for the given room.
+        firebaseManager?.registerNewListenerForList(
+            location
+        ) { cloudAnchorList ->
+            // When the cloud anchor ID is available from Firebase.
+            Log.d(TAG, cloudAnchorList as String)
+
+//            for(child in cloudAnchorList)
+//            {
+//                Log.d(TAG, obj["hotspot_list"] as String);
+//            }
+
+//            val resolveListener: CloudAnchorResolveStateListener =
+//                CloudAnchorResolveStateListener(
+//
+//                )
+
+            Preconditions.checkNotNull(cloudAnchorList, "The resolve listener cannot be null.")
+
+            Log.d("CloudAnchorActivity", "Resolving cloud anchor with ID $cloudAnchorList");
+
+
+        }
+
     }
 
     /** Callback function invoked when the user presses the OK button in the Resolve Dialog.  */
