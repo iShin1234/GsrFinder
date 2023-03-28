@@ -100,6 +100,17 @@
         app:layout_constraintStart_toStartOf="@+id/spinToSchool"
         app:layout_constraintTop_toBottomOf="@+id/spinToSchool" />
 
+
+    <TextView
+        android:id="@+id/tvDisclaimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Camera is required for AR navigation"
+        app:layout_constraintBottom_toTopOf="@+id/btnGetStarted"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
     <Button
         android:id="@+id/btnGetStarted"
         android:layout_width="match_parent"

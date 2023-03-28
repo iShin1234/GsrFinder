@@ -2,24 +2,34 @@ package sg.edu.smu.gsrfinder
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Spinner
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.ar.core.ArCoreApk
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 class MainActivity : AppCompatActivity()
 {
     private lateinit var spinFrom: String;
     private lateinit var spinToSchool: String;
     private lateinit var spinToRoom: String;
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -27,9 +37,32 @@ class MainActivity : AppCompatActivity()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+//        val database = FirebaseDatabase.getInstance();
+//        val ref = database.reference.child("User")
+//        ref.child("TempName").setValue("Hello World");
+//
+//        val ref2 = database.reference;
+//
+//        ref2.addValueEventListener(object : ValueEventListener
+//        {
+//            override fun onDataChange(dataSnapshot: DataSnapshot)
+//            {
+//                Log.d("MainActivity", "onDataChange()");
+//                val value = dataSnapshot.child("User").child("TempName").value.toString();
+//                Log.d("MainActivity", "Value is: $value")
+//            }
+//
+//            override fun onCancelled(error: DatabaseError)
+//            {
+//                Log.w("MainActivity", "Failed to read value.", error.toException())
+//            }
+//        })
+
+
         initSpinFrom(true);
         initSpinToSchool();
         initSpinToRoom("SCIS 1");
+        maybeEnableArButton();
     }
 
     /*
@@ -98,6 +131,13 @@ class MainActivity : AppCompatActivity()
                 ACCESS_FINE_LOCATION) !==
             PackageManager.PERMISSION_GRANTED)
         {
+            if (checkSelfPermission(ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED)
+            {
+                //Location request granted
+                Toast.makeText(this, "Requesting Permission", Toast.LENGTH_SHORT).show()
+            }
+
             if (ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity,
                     ACCESS_FINE_LOCATION))
             {
@@ -109,18 +149,11 @@ class MainActivity : AppCompatActivity()
                 ActivityCompat.requestPermissions(this@MainActivity,
                     arrayOf(ACCESS_FINE_LOCATION), 1)
             }
-
-            if (checkSelfPermission(ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED)
-            {
-                //Location request granted
-                Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show()
-            }
         }
         else
         {
             //Location request already granted for the app
-            Toast.makeText(this, "already granted", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Permission already granted", Toast.LENGTH_SHORT).show()
 
         }
 
@@ -219,6 +252,10 @@ class MainActivity : AppCompatActivity()
         Log.d("MainActivity", "btnGetStartedClicked() - spinToSchool: $spinToSchool");
         Log.d("MainActivity", "btnGetStartedClicked() - spinToRoom: $spinToRoom");
 
+        //Start ArActivity Intent
+        val arIntent = Intent(this, CloudAnchorActivity::class.java)
+        startActivity(arIntent)
+
 
         /* TODO */
         //If user is in SCIS, dependent on floor -> Use Anchor cloud, launch camera and show steps
@@ -227,7 +264,167 @@ class MainActivity : AppCompatActivity()
         //get user from spinToRoom
 
 
+//        startMapActivity();
+
 
     }
 
+    fun startMapActivity()
+    {
+        if (checkSelfPermission(ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED)
+        {
+            //Location request granted
+            Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show()
+
+            // Initialize object
+
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+            fusedLocationClient.lastLocation.addOnSuccessListener(this, OnSuccessListener { location: Location? ->
+                if (location != null) {
+                    val lat = location.latitude
+                    val lon = location.longitude
+
+                    Log.d("MainActivity", "btnGetStartedClicked() - lat: $lat");
+                    Log.d("MainActivity", "btnGetStartedClicked() - lon: $lon");
+
+
+                    //Open Map activity intent
+                    val mapIntent = Intent(this, MapsActivity::class.java)
+                    startActivity(mapIntent)
+
+                }
+            })
+
+        }
+        else
+        {
+            //Location request already granted for the app
+            Toast.makeText(this, "Please request for location", Toast.LENGTH_SHORT).show()
+
+        }
+    }
+
+    fun maybeEnableArButton()
+    {
+        Log.d("MainActivity", "maybeEnableArButton()");
+        val availability = ArCoreApk.getInstance().checkAvailability(this@MainActivity)
+        if (availability.isTransient)
+        {
+            // Continue to query availability at 5Hz while compatibility is checked in the background.
+            Handler(Looper.getMainLooper()).postDelayed({
+                // Your Code
+                Log.d("MainActivity", "maybeEnableArButton() - AR Transient");
+                maybeEnableArButton()
+            }, 200)
+        }
+        val myArButton = findViewById<Button>(R.id.btnGetStarted)
+        if (availability.isSupported)
+        {
+            Log.d("MainActivity", "maybeEnableArButton() - AR Supported");
+            myArButton.visibility = View.VISIBLE
+            myArButton.isEnabled = true
+        }
+        else
+        {
+            Log.d("MainActivity", "maybeEnableArButton() - AR Not Supported");
+            // The device is unsupported or unknown.
+            myArButton.visibility = View.INVISIBLE
+            myArButton.isEnabled = false
+        }
+    }
+
+    /*// requestInstall(Activity, true) will triggers installation of
+    // Google Play Services for AR if necessary.
+    var mUserRequestedInstall = true
+
+    fun setupAR()
+    {
+        // Check camera permission.
+        if (!CameraPermissionHelper.hasCameraPermission(this))
+        {
+            Toast.makeText(this, "Camera permission is needed to run this application", Toast.LENGTH_LONG)
+                .show()
+            CameraPermissionHelper.requestCameraPermission(this)
+            return
+        }
+
+        // Ensure that Google Play Services for AR and ARCore device profile data are
+        // installed and up to date.
+        try {
+            var mSession: Session? = null;
+            if (mSession == null) {
+                when (ArCoreApk.getInstance().requestInstall(this, mUserRequestedInstall)) {
+                    ArCoreApk.InstallStatus.INSTALLED -> {
+                        Log.d("MainActivity", "setupAR() - AR Installed");
+                        // Success: Safe to create the AR session.
+
+                        mSession = Session(this);
+
+                        val config = Config(mSession);
+
+                        // Do feature-specific operations here, such as enabling depth or turning on
+                        // support for Augmented Faces.
+                        //https://developers.google.com/ar/develop/cloud-anchors
+                        // Enable Cloud Anchors.
+                        //config.cloudAnchorMode = Config.CloudAnchorMode.ENABLED
+
+                        config.geospatialMode = Config.GeospatialMode.ENABLED
+
+                        // Configure the session.
+                        mSession.configure(config);
+
+                        // Release native heap memory used by an ARCore session.
+                        mSession.close()
+
+                    }
+                    ArCoreApk.InstallStatus.INSTALL_REQUESTED -> {
+                        Log.d("MainActivity", "setupAR() - AR Install Requested");
+                        // When this method returns `INSTALL_REQUESTED`:
+                        // 1. ARCore pauses this activity.
+                        // 2. ARCore prompts the user to install or update Google Play
+                        //    Services for AR (market://details?id=com.google.ar.core).
+                        // 3. ARCore downloads the latest device profile data.
+                        // 4. ARCore resumes this activity. The next invocation of
+                        //    requestInstall() will either return `INSTALLED` or throw an
+                        //    exception if the installation or update did not succeed.
+                        mUserRequestedInstall = false
+
+                        return
+                    }
+                }
+            }
+        }
+        catch (e: UnavailableUserDeclinedInstallationException)
+        {
+            // Display an appropriate message to the user and return gracefully.
+            Toast.makeText(this, "TODO: handle exception " + e, Toast.LENGTH_LONG)
+                .show()
+            return
+        }
+    }*/
+
+    override fun onResume()
+    {
+        Log.d("MainActivity", "onResume()");
+        super.onResume()
+    }
+//
+//    override fun onRequestPermissionsResult(
+//        requestCode: Int,
+//        permissions: Array<String>,
+//        results: IntArray
+//    ) {
+//        Log.d("MainActivity", "onRequestPermissionsResult()");
+//        super.onRequestPermissionsResult(requestCode, permissions, results)
+//        if (!CameraPermissionHelper.hasCameraPermission(this))
+//        {
+//            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {
+//                // Permission denied with checking "Do not ask again".
+//                CameraPermissionHelper.launchPermissionSettings(this)
+//            }
+//            finish()
+//        }
+//    }
 }

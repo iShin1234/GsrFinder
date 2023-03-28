@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "248525062328",
+    "firebase_url": "https://cs461-gsr-finder-61182-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "cs461-gsr-finder-61182",
+    "storage_bucket": "cs461-gsr-finder-61182.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:248525062328:android:2e8d6f4223de8fc76df44d",
+        "android_client_info": {
+          "package_name": "sg.edu.smu.gsrfinder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "248525062328-mgbdeo9njrasqie89ruk8vi3nf3np0er.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "sg.edu.smu.gsrfinder",
+            "certificate_hash": "bfecea9c0ddaa12ace9c1850f32e8412c716cb0a"
+          }
+        },
+        {
+          "client_id": "248525062328-j7ukon4e96h5nb4bvpl8sip7ujecntag.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDNg0c1l0Z04kzKEstP5W3B_GQvP029EQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "248525062328-j7ukon4e96h5nb4bvpl8sip7ujecntag.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
