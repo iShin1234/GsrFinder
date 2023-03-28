@@ -43,4 +43,8 @@
     <string name="learn_more">Learn more</string>
     <!-- Privacy learn more URL. [CHAR_LIMIT=NONE] -->
     <string name="learn_more_url">https://developers.google.com/ar/data-privacy</string>
+
+    <!-- to toggle the open close button of the navigation drawer -->
+    <string name="nav_open">Open</string>
+    <string name="nav_close">Close</string>
 </resources>

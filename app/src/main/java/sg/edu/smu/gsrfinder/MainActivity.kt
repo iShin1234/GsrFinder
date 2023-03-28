@@ -4,17 +4,21 @@ import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
@@ -30,12 +34,26 @@ class MainActivity : AppCompatActivity()
     private lateinit var spinToSchool: String;
     private lateinit var spinToRoom: String;
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
     override fun onCreate(savedInstanceState: Bundle?)
     {
         Log.d("MainActivity", "onCreate()");
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // drawer layout instance to toggle the menu icon to open
+        // drawer and back button to close drawer
+        drawerLayout = findViewById<DrawerLayout>(R.id.my_drawer_layout)
+        actionBarDrawerToggle = ActionBarDrawerToggle(this, drawerLayout, R.string.nav_open, R.string.nav_close)
+
+        // pass the Open and Close toggle for the drawer layout listener
+        // to toggle the button
+        drawerLayout.addDrawerListener(actionBarDrawerToggle)
+        actionBarDrawerToggle.syncState()
+
+        // to make the Navigation drawer icon always appear on the action bar
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
 //        val database = FirebaseDatabase.getInstance();
 //        val ref = database.reference.child("User")
@@ -64,6 +82,22 @@ class MainActivity : AppCompatActivity()
         initSpinToRoom("SCIS 1");
         maybeEnableArButton();
     }
+    // override the onOptionsItemSelected()
+    // function to implement
+    // the item click listener callback
+    // to open and close the navigation
+    // drawer when the icon is clicked
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
+            AdminClick()
+            true
+
+        } else {
+            super.onOptionsItemSelected(item)
+            }
+
+        }
+
 
     /*
      *  1. <if> User is in SCIS, Get the gsr list from values/spinner_lists.xml
@@ -244,7 +278,7 @@ class MainActivity : AppCompatActivity()
     /*
      * 1. Begin navigation
      */
-    fun btnGetStartedClicked(view: View)
+    fun AdminClick()
     {
         Log.d("MainActivity", "btnGetStartedClicked()");
 
@@ -410,6 +444,8 @@ class MainActivity : AppCompatActivity()
         Log.d("MainActivity", "onResume()");
         super.onResume()
     }
+
+    fun btnGetStartedClicked(view: View) {}
 //
 //    override fun onRequestPermissionsResult(
 //        requestCode: Int,
