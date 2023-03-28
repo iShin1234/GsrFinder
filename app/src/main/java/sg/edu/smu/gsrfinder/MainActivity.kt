@@ -453,7 +453,15 @@ class MainActivity : AppCompatActivity()
         super.onResume()
     }
 
-    fun btnGetStartedClicked(view: View) {}
+    fun btnGetStartedClicked(view: View) {
+        Log.d("BTNCLICKSPINTO","IN")
+        Log.d("BTNCLICKSPINTO",spinToSchool)
+        Log.d("BTNCLICKSPINTO",spinToRoom)
+
+        val myIntent = Intent(this, userCloudAnchor::class.java)
+        myIntent.putExtra("location", spinToSchool.toString() + " " + spinToRoom.toString())
+        startActivity(myIntent)
+    }
 //
 //    override fun onRequestPermissionsResult(
 //        requestCode: Int,
