@@ -16,6 +16,7 @@
 package sg.edu.smu.gsrfinder
 
 import android.content.Context
+import android.renderscript.Sampler.Value
 import android.util.Log
 import com.google.common.base.Preconditions
 import com.google.firebase.FirebaseApp
@@ -43,6 +44,9 @@ internal class FirebaseManager(context: Context?) {
     private var roomCodeRef: DatabaseReference? = null
     private var currentRoomRef: DatabaseReference? = null
     private var currentRoomListener: ValueEventListener? = null
+
+    private var listRef: DatabaseReference? = null;
+    private var allRoomListener: ValueEventListener? = null
 
     /**
      * Default constructor for the FirebaseManager.
@@ -104,6 +108,49 @@ internal class FirebaseManager(context: Context?) {
         roomRef.child(KEY_DISPLAY_NAME).setValue(DISPLAY_NAME_VALUE)
         roomRef.child(KEY_ANCHOR_ID).setValue(cloudAnchorId)
         roomRef.child(KEY_TIMESTAMP).setValue(System.currentTimeMillis())
+    }
+
+    /**
+     * Registers a new listener for the given room code. The listener is invoked whenever the data for
+     * the room code is changed.
+     */
+    fun registerNewListenerForList(collect_list: String, listener: (Any) -> Unit) {
+        Preconditions.checkNotNull(app, "Firebase App was null")
+        clearRoomListener()
+        if(app != null)
+        {
+            val rootRef = FirebaseDatabase.getInstance(app).reference
+            listRef = rootRef.child(collect_list)
+
+            allRoomListener = object : ValueEventListener
+            {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    Log.d(TAG, snapshot.toString());
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.w(TAG, "The Firebase operation was cancelled.", databaseError.toException())
+                }
+            }
+
+//            currentRoomRef = hotspotListRef!!.child(roomCode.toString())
+//            currentRoomListener = object : ValueEventListener {
+//                override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                    val valObj = dataSnapshot.child(KEY_ANCHOR_ID).value
+//                    if (valObj != null) {
+//                        val anchorId = valObj.toString()
+//                        if (!anchorId.isEmpty()) {
+//                            listener.invoke(anchorId)
+//                        }
+//                    }
+//                }
+//
+//                override fun onCancelled(databaseError: DatabaseError) {
+//                    Log.w(TAG, "The Firebase operation was cancelled.", databaseError.toException())
+//                }
+//            }
+            listRef!!.addValueEventListener(allRoomListener as ValueEventListener)
+        }
     }
 
     /**

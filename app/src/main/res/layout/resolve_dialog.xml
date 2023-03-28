@@ -22,8 +22,8 @@
       android:id="@+id/room_code_input"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:inputType="number"
-      android:maxLength="8"
-      android:hint="@string/resolve_dialog_text_hint"/>
+      android:hint="@string/resolve_dialog_text_hint"
+      android:inputType="textShortMessage|textLongMessage"
+      android:maxLength="15" />
 
 </LinearLayout>
