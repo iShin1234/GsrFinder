@@ -108,6 +108,10 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
     private val cloudManager: CloudAnchorManager = CloudAnchorManager()
     private var currentMode: HostResolveMode? = null
     private var hostListener: RoomCodeAndCloudAnchorIdListener? = null
+
+    // Firebase
+    private var schGsr: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
@@ -150,6 +154,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
 
         // Initialize UI components.
         hostButton = findViewById<Button>(R.id.host_button)
+        hostButton = findViewById<Button>(R.id.host_button)
         hostButton?.setOnClickListener(View.OnClickListener { view: View? -> onHostButtonPress() })
         resolveButton = findViewById<Button>(R.id.resolve_button)
         resolveButton?.setOnClickListener(View.OnClickListener { view: View? -> onResolveButtonPress() })
@@ -168,10 +173,6 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
      */
     private fun initSpinToSchool()
     {
-        Log.d("MainActivity", "initSpinToSchool()");
-
-        val list: Array<String>;
-
         val schoolList = resources.getStringArray(R.array.schoolList);
 
         val spinAdapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, schoolList);
@@ -188,6 +189,8 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
 //                spinToSchool = selectedString;
                 Log.d("STRING1: ", selectedString);
 
+                schGsr = selectedString
+
                 initSpinToRoom(selectedString);
             }
             override fun onNothingSelected(p0: AdapterView<*>?)
@@ -202,18 +205,16 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
      */
     private fun initSpinToRoom(school: String)
     {
-        Log.d("MainActivity", "initSpinToRoom()");
-
         when(school)
         {
             "SCIS 1" ->
             {
-                Log.d("MainActivity", "initSpinToRoom() - User Selected SCIS 1");
+                Log.d("CloudAnchorActivity", "initSpinToRoom() - User Selected SCIS 1");
                 showRoom(resources.getStringArray(R.array.scis1GsrList));
             }
             "SCIS 2/SOE" ->
             {
-                Log.d("MainActivity", "initSpinToRoom() - User Selected SCIS 2/SOE");
+                Log.d("CloudAnchorActivity", "initSpinToRoom() - User Selected SCIS 2/SOE");
                 showRoom(resources.getStringArray(R.array.scis2soeGsrList));
             }
         }
@@ -234,6 +235,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
                 Log.d("CloudAnchorActivity", "showRoom() - onItemSelected()");
                 val selectedString = parent!!.getItemAtPosition(index).toString();
                 Log.d("STRING2: ", selectedString);
+                schGsr += " " + selectedString
 
 //                this@CloudAnchorActivity.spinToRoom = selectedString;
             }
@@ -698,7 +700,8 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
             if (roomCode == null || cloudAnchorId == null) {
                 return
             }
-            firebaseManager?.storeAnchorIdInRoom(roomCode!!, cloudAnchorId)
+            Log.d("SCHGSR", schGsr!!)
+            firebaseManager?.storeAnchorIdInRoom(schGsr!!, roomCode!!, cloudAnchorId)
             snackbarHelper.showMessageWithDismiss(
                 this@CloudAnchorActivity, getString(R.string.snackbar_cloud_id_shared)
             )
