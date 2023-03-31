@@ -280,8 +280,11 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
             var exception: Exception? = null
             var messageId = -1
             try {
+                Log.d("CloudAnchorActivity", "createSession() - 1");
+
                 when (ArCoreApk.getInstance().requestInstall(this, !installRequested)) {
                     InstallStatus.INSTALL_REQUESTED -> {
+                        Log.d("CloudAnchorActivity", "createSession() - 2");
                         installRequested = true
                         return
                     }
@@ -290,9 +293,11 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
                 // ARCore requires camera permissions to operate. If we did not yet obtain runtime
                 // permission on Android M and above, now is a good time to ask the user for it.
                 if (!CameraPermissionHelper.hasCameraPermission(this)) {
+                    Log.d("CloudAnchorActivity", "createSession() - 3");
                     CameraPermissionHelper.requestCameraPermission(this)
                     return
                 }
+                Log.d("CloudAnchorActivity", "createSession() - 4");
                 session = Session(this)
             } catch (e: UnavailableArcoreNotInstalledException) {
                 messageId = R.string.snackbar_arcore_unavailable
@@ -367,6 +372,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
+        Log.d("CloudAnchorActivity", "onWindowFocusChanged()");
         FullScreenHelper.setFullScreenOnWindowFocusChanged(this, hasFocus)
     }
 
@@ -659,22 +665,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
             resetMode()
             return
         }
-        if (!sharedPreferences!!.getBoolean(ALLOW_SHARE_IMAGES_KEY, false)) {
-            showNoticeDialog(object : HostResolveListener {
-                override fun onPrivacyNoticeReceived() {
-                    onPrivacyAcceptedForResolve()
-                }
-            })
-        } else {
-            onPrivacyAcceptedForResolve()
-        }
-    }
-
-    private fun onPrivacyAcceptedForResolve() {
-        val dialogFragment = ResolveDialogFragment()
-//        dialogFragment.setOkListener { roomCode: Long -> onRoomCodeEntered(roomCode) }
-        dialogFragment.setOkListener { onRoomCodeEntered() }
-        dialogFragment.show(supportFragmentManager, "ResolveDialog")
+        onRoomCodeEntered();
     }
 
     /** Resets the mode of the app to its initial state and removes the anchors.  */
