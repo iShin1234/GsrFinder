@@ -457,7 +457,7 @@ class MainActivity : AppCompatActivity()
         Log.d("BTNCLICKSPINTO",spinToSchool)
         Log.d("BTNCLICKSPINTO",spinToRoom)
 
-        val myIntent = Intent(this, UserCloudAnchor::class.java)
+        val myIntent = Intent(this, UserCloudAnchorActivity::class.java)
         myIntent.putExtra("location", spinToSchool.toString() + " " + spinToRoom.toString())
         startActivity(myIntent)
     }

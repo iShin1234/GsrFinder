@@ -23,7 +23,7 @@
         android:theme="@style/Theme.GsrFinder"
         tools:targetApi="31">
         <activity
-            android:name=".UserCloudAnchor"
+            android:name=".UserCloudAnchorActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

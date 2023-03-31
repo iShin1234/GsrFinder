@@ -76,6 +76,8 @@ internal class CloudAnchorManager {
     fun resolveCloudAnchor(
         anchorId: Any, listener: CloudAnchorResolveListener, startTimeMillis: Long
     ) {
+        Log.d("CloudAnchorManager", "Resolving cloud anchor: $anchorId");
+        Log.d("CloudAnchorManager", "Checking null");
         Preconditions.checkNotNull(session, "The session cannot be null.")
         val newAnchor = session!!.resolveCloudAnchor(anchorId as String?)
         deadlineForMessageMillis = startTimeMillis + DURATION_FOR_NO_RESOLVE_RESULT_MS

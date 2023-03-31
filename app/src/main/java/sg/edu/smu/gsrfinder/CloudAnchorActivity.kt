@@ -253,6 +253,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
 
     override fun onDestroy() {
         // Clear all registered listeners.
+        Log.d("CloudAnchorActivity()", "onDestroy()")
         resetMode()
         if (session != null) {
             // Explicitly close ARCore Session to release native resources.
@@ -665,11 +666,27 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
             resetMode()
             return
         }
+
+        if (!sharedPreferences!!.getBoolean(ALLOW_SHARE_IMAGES_KEY, false)) {
+            showNoticeDialog(object : HostResolveListener {
+                override fun onPrivacyNoticeReceived() {
+                    onPrivacyAcceptedForResolve()
+                }
+            })
+        } else {
+            onPrivacyAcceptedForResolve()
+        }
+
+    }
+
+    private fun onPrivacyAcceptedForResolve()
+    {
         onRoomCodeEntered();
     }
 
     /** Resets the mode of the app to its initial state and removes the anchors.  */
     private fun resetMode() {
+        clearAnchor();
         hostButton?.setText(R.string.host_button_text)
         hostButton!!.isEnabled = true
         resolveButton?.setText(R.string.resolve_button_text)
@@ -681,7 +698,6 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
         setNewAnchor(null)
         snackbarHelper.hide(this)
         cloudManager.clearListeners()
-        clearAnchor();
     }
 
     private fun clearAnchor()
