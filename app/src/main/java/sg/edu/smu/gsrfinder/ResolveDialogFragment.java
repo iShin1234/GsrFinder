@@ -32,12 +32,8 @@ import com.google.common.base.Preconditions;
 public class ResolveDialogFragment extends DialogFragment {
 
   interface OkListener {
-    /**
-     * This method is called by the dialog box when its OK button is pressed.
-     *
-     * @param dialogValue the long value from the dialog box
-     */
-    void onOkPressed(String dialogValue);
+
+    void onOkPressed();
   }
 
   private EditText roomCodeField;
@@ -62,11 +58,7 @@ public class ResolveDialogFragment extends DialogFragment {
         .setPositiveButton(
             R.string.resolve_dialog_ok,
             (dialog, which) -> {
-              Editable roomCodeText = roomCodeField.getText();
-              if (okListener != null && roomCodeText != null && roomCodeText.length() > 0) {
-                String longVal = roomCodeText.toString();
-                okListener.onOkPressed(longVal);
-              }
+              okListener.onOkPressed();
             })
         .setNegativeButton(R.string.cancel, (dialog, which) -> {});
     return builder.create();

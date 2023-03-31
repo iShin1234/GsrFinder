@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
@@ -458,7 +457,7 @@ class MainActivity : AppCompatActivity()
         Log.d("BTNCLICKSPINTO",spinToSchool)
         Log.d("BTNCLICKSPINTO",spinToRoom)
 
-        val myIntent = Intent(this, userCloudAnchor::class.java)
+        val myIntent = Intent(this, UserCloudAnchor::class.java)
         myIntent.putExtra("location", spinToSchool.toString() + " " + spinToRoom.toString())
         startActivity(myIntent)
     }

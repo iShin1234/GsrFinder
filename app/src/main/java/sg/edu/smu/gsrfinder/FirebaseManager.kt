@@ -17,6 +17,7 @@ package sg.edu.smu.gsrfinder
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import com.google.common.base.Preconditions
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.*
@@ -47,6 +48,8 @@ internal class FirebaseManager(context: Context?) {
     private var listRef: DatabaseReference? = null;
     private var allRoomListener: ValueEventListener? = null
 
+    private var schGsrList = ArrayList<String>()
+
     /**
      * Default constructor for the FirebaseManager.
      *
@@ -56,7 +59,36 @@ internal class FirebaseManager(context: Context?) {
         app = FirebaseApp.initializeApp(context!!)
         if (app != null) {
             val rootRef = FirebaseDatabase.getInstance(app).reference
-            hotspotListRef = rootRef.child(ROOT_FIREBASE_HOTSPOTS)
+            val schoolList = context.resources.getStringArray(R.array.schoolList)
+
+            // if SCIS 1 -> scis1GsrList
+            val scis1GsrList = context.resources.getStringArray(R.array.scis1GsrList)
+
+            // if SCIS 2/SOE -> scis2soeGsrList
+            val scis2soeGsrList = context.resources.getStringArray(R.array.scis2soeGsrList)
+
+
+
+            for (sch in schoolList) {
+                // Log.d("SCHOOL", sch)
+                if (sch == "SCIS 1") {
+                    for (gsr in scis1GsrList) {
+                        var newGsrString = sch.toString() + " " + gsr.toString()
+                        Log.d("HERE", newGsrString)
+                        //hotspotListRef = rootRef.child(newGsrString)
+                        schGsrList.add(newGsrString)
+                    }
+                }
+                else {
+                    for (gsr in scis2soeGsrList) {
+                        var newGsrString = sch.toString() + " " + gsr.toString()
+                        //hotspotListRef = rootRef.child(newGsrString)
+                        schGsrList.add(newGsrString)
+                    }
+                }
+            }
+
+            //hotspotListRef = rootRef.child("soe")
             roomCodeRef = rootRef.child(ROOT_LAST_ROOM_CODE)
             DatabaseReference.goOnline()
         } else {
@@ -101,8 +133,12 @@ internal class FirebaseManager(context: Context?) {
     }
 
     /** Stores the given anchor ID in the given room code.  */
-    fun storeAnchorIdInRoom(roomCode: Long, cloudAnchorId: String?) {
+    fun storeAnchorIdInRoom(hotspot: String, roomCode: Long, cloudAnchorId: String?) {
         Preconditions.checkNotNull(app, "Firebase App was null")
+        if (hotspot in schGsrList) {
+            val rootRef = FirebaseDatabase.getInstance(app!!).reference
+            hotspotListRef = rootRef.child(hotspot)
+        }
         val roomRef = hotspotListRef!!.child(roomCode.toString())
         roomRef.child(KEY_DISPLAY_NAME).setValue(DISPLAY_NAME_VALUE)
         roomRef.child(KEY_ANCHOR_ID).setValue(cloudAnchorId)
