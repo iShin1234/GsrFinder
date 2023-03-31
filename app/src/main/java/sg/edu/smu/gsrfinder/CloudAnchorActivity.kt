@@ -673,7 +673,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
     private fun onPrivacyAcceptedForResolve() {
         val dialogFragment = ResolveDialogFragment()
 //        dialogFragment.setOkListener { roomCode: Long -> onRoomCodeEntered(roomCode) }
-        dialogFragment.setOkListener { roomCode: String -> onRoomCodeEntered(roomCode) }
+        dialogFragment.setOkListener { onRoomCodeEntered() }
         dialogFragment.show(supportFragmentManager, "ResolveDialog")
     }
 
@@ -690,10 +690,10 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
         setNewAnchor(null)
         snackbarHelper.hide(this)
         cloudManager.clearListeners()
+        clearAnchor();
     }
 
-    /** Callback function invoked when the user presses the OK button in the Resolve Dialog.  */
-    private fun onRoomCodeEntered(location: String)
+    private fun clearAnchor()
     {
         if (anchors.isNotEmpty())
         {
@@ -708,6 +708,13 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
             }
             anchors.clear()
         }
+    }
+
+    /** Callback function invoked when the user presses the OK button in the Resolve Dialog.  */
+    private fun onRoomCodeEntered()
+    {
+        clearAnchor();
+        val location = this.schGsr!!;
 
         currentMode = HostResolveMode.RESOLVING
         hostButton!!.isEnabled = false
