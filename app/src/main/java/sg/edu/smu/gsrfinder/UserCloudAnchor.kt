@@ -15,7 +15,6 @@
  */
 package sg.edu.smu.gsrfinder
 
-import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
@@ -64,7 +63,7 @@ import javax.microedition.khronos.opengles.GL10
  * API calls. This app only has at most one anchor at a time, to focus more on the cloud aspect of
  * anchors.
  */
-class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
+class UserCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
     NoticeDialogListener {
     private enum class HostResolveMode {
         NONE, HOSTING, RESOLVING
@@ -114,12 +113,15 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
     private val cloudManager: CloudAnchorManager = CloudAnchorManager()
     private var currentMode: HostResolveMode? = null
     private var hostListener: RoomCodeAndCloudAnchorIdListener? = null
+
+    // Firebase
+    private var schGsr: String? = null
+    private var school: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_cloud_anchor)
-        Log.d("USER", "HERE")
-
         surfaceView = findViewById<GLSurfaceView>(R.id.surfaceview)
         displayRotationHelper = DisplayRotationHelper(this)
 
@@ -156,14 +158,20 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
         surfaceView?.setWillNotDraw(false)
         installRequested = false
 
-
         // Initialize Cloud Anchor variables.
         firebaseManager = FirebaseManager(this)
         currentMode = HostResolveMode.NONE
         sharedPreferences = getSharedPreferences(PREFERENCE_FILE_KEY, MODE_PRIVATE)
 
         showLocation()
+    }
 
+    private fun showLocation (){
+        var it = intent
+        var location = it.getStringExtra("location")
+
+        var location_tv = findViewById<TextView>(R.id.location)
+        location_tv.text = location.toString()
     }
 
     override fun onDestroy() {
@@ -185,17 +193,9 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
         if (sharedPreferences!!.getBoolean(ALLOW_SHARE_IMAGES_KEY, false)) {
             createSession()
         }
-//        snackbarHelper.showMessage(this, getString(R.string.snackbar_initial_message))
-//        surfaceView!!.onResume()
-//        displayRotationHelper?.onResume()
-        showLocation ()
-    }
-    private fun showLocation (){
-        var it = intent
-        var location = it.getStringExtra("location")
-
-        var location_tv = findViewById<TextView>(R.id.location)
-        location_tv.text = location.toString()
+        snackbarHelper.showMessage(this, getString(R.string.snackbar_initial_message))
+        surfaceView!!.onResume()
+        displayRotationHelper?.onResume()
     }
 
     private fun createSession() {
@@ -203,6 +203,7 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
             var exception: Exception? = null
             var messageId = -1
             try {
+                Log.d("ARCore", "ARCore is not installed");
                 when (ArCoreApk.getInstance().requestInstall(this, !installRequested)) {
                     InstallStatus.INSTALL_REQUESTED -> {
                         installRequested = true
@@ -290,6 +291,7 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
+        Log.d("ARCore", "onWindowFocusChanged");
         FullScreenHelper.setFullScreenOnWindowFocusChanged(this, hasFocus)
     }
 
@@ -475,6 +477,62 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
         }
     }
 
+//    private inner class DisplayAnchor(frame: Frame, cloudAnchorId: String) {
+//        private var anchorMatrix = FloatArray(16)
+//        private val viewMatrix = FloatArray(16)
+//        private val projectionMatrix = FloatArray(16)
+//        private val cloudAnchorId = cloudAnchorId;
+//        private val frame = frame;
+//
+//        fun getAnchorId(): String
+//        {
+//            return cloudAnchorId;
+//        }
+//
+//        fun displayAnchor()
+//        {
+//            Log.d(TAG, "Drawing anchor");
+//
+//            val colorCorrectionRgba = FloatArray(4)
+//            frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
+//
+//            // Update and draw the model and its shadow.
+//            val scaleFactor = 1.0f
+//            virtualObject.updateModelMatrix(anchorMatrix, scaleFactor)
+//            virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor)
+//            virtualObject.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, OBJECT_COLOR)
+//            virtualObjectShadow.draw(
+//                viewMatrix,
+//                projectionMatrix,
+//                colorCorrectionRgba,
+//                OBJECT_COLOR
+//            )
+//        }
+//    }
+
+//    private fun displayAnchor(frame: Frame)
+//    {
+//        // Visualize anchor.
+//        if (shouldDrawAnchor) {
+//            Log.d(TAG, "Drawing anchor");
+//            val colorCorrectionRgba = FloatArray(4)
+//            frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
+//
+//            // Update and draw the model and its shadow.
+//            val scaleFactor = 1.0f
+//            virtualObject.updateModelMatrix(anchorMatrix, scaleFactor)
+//            virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor)
+//            virtualObject.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, OBJECT_COLOR)
+//            virtualObjectShadow.draw(
+//                viewMatrix,
+//                projectionMatrix,
+//                colorCorrectionRgba,
+//                OBJECT_COLOR
+//            )
+//        }
+//
+//    }
+
     /** Sets the new value of the current anchor. Detaches the old anchor, if it was non-null.  */
     private fun setNewAnchor(newAnchor: Anchor?) {
 
@@ -492,16 +550,44 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
         }
     }
 
+    /** Callback function invoked when the Host Button is pressed.  */
+    private fun onHostButtonPress() {
+        if (currentMode == HostResolveMode.HOSTING) {
+            resetMode()
+            return
+        }
+        if (!sharedPreferences!!.getBoolean(ALLOW_SHARE_IMAGES_KEY, false)) {
+            showNoticeDialog(object : HostResolveListener {
+                override fun onPrivacyNoticeReceived() {
+                    onPrivacyAcceptedForHost()
+                }
+            })
+        } else {
+            onPrivacyAcceptedForHost()
+        }
+    }
 
+    private fun onPrivacyAcceptedForHost() {
+        if (hostListener != null) {
+            return
+        }
+        resolveButton!!.isEnabled = false
+        hostButton?.setText(R.string.cancel)
+        snackbarHelper.showMessageWithDismiss(this, getString(R.string.snackbar_on_host))
+        hostListener = RoomCodeAndCloudAnchorIdListener()
+        firebaseManager?.getNewRoomCode(hostListener!!)
+    }
 
+    /** Callback function invoked when the Resolve Button is pressed.  */
+    private fun onResolveButtonPress() {
+        if (currentMode == HostResolveMode.RESOLVING) {
+            resetMode()
+            return
+        }
 
+        onRoomCodeEntered();
 
-//    private fun onPrivacyAcceptedForResolve() {
-//        val dialogFragment = ResolveDialogFragment()
-////        dialogFragment.setOkListener { roomCode: Long -> onRoomCodeEntered(roomCode) }
-//        dialogFragment.setOkListener { roomCode: String -> onRoomCodeEntered(roomCode) }
-//        dialogFragment.show(supportFragmentManager, "ResolveDialog")
-//    }
+    }
 
     /** Resets the mode of the app to its initial state and removes the anchors.  */
     private fun resetMode() {
@@ -511,10 +597,10 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
         setNewAnchor(null)
         snackbarHelper.hide(this)
         cloudManager.clearListeners()
+        clearAnchor();
     }
 
-    /** Callback function invoked when the user presses the OK button in the Resolve Dialog.  */
-    private fun onRoomCodeEntered(location: String)
+    private fun clearAnchor()
     {
         if (anchors.isNotEmpty())
         {
@@ -529,6 +615,13 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
             }
             anchors.clear()
         }
+    }
+
+    /** Callback function invoked when the user presses the OK button in the Resolve Dialog.  */
+    private fun onRoomCodeEntered()
+    {
+        clearAnchor();
+        val location = this.schGsr!!;
 
         currentMode = HostResolveMode.RESOLVING
         hostButton!!.isEnabled = false
@@ -617,8 +710,9 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
             roomCode = newRoomCode
             roomCodeText!!.text = roomCode.toString()
             snackbarHelper.showMessageWithDismiss(
-                this@userCloudAnchor, getString(R.string.snackbar_room_code_available)
+                this@UserCloudAnchor, getString(R.string.snackbar_room_code_available)
             )
+            Log.d("CloudAnchorActivty() - onNewRoomCode()", "roomCode: $roomCode")
             checkAndMaybeShare()
             synchronized(singleTapLock) {
                 // Change currentMode to HOSTING after receiving the room code (not when the 'Host' button
@@ -634,7 +728,7 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
                 Log.w(TAG, "A Firebase database error happened.", error.toException())
             }
             snackbarHelper.showError(
-                this@userCloudAnchor, getString(R.string.snackbar_firebase_error)
+                this@UserCloudAnchor, getString(R.string.snackbar_firebase_error)
             )
         }
 
@@ -642,13 +736,16 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
             if (roomCode == null || cloudAnchorId == null) {
                 return
             }
-            firebaseManager?.storeAnchorIdInRoom(roomCode!!, cloudAnchorId)
+            Log.d("CloudAnchorActivty() - checkAndMaybeShare()", "roomCode: $roomCode")
+            Log.d("CloudAnchorActivty() - SCHGSR", schGsr!!)
+            firebaseManager?.storeAnchorIdInRoom(schGsr!!, roomCode!!, cloudAnchorId)
             snackbarHelper.showMessageWithDismiss(
-                this@userCloudAnchor, getString(R.string.snackbar_cloud_id_shared)
+                this@UserCloudAnchor, getString(R.string.snackbar_cloud_id_shared)
             )
         }
 
         override fun onCloudTaskComplete(anchor: Anchor?) {
+            Log.d("CloudAnchorActivity", "onCloudTaskComplete() - anchor: $anchor")
             val cloudState = anchor?.cloudAnchorState
             if (cloudState != null) {
                 if (cloudState.isError) {
@@ -657,7 +754,7 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
                         "Error hosting a cloud anchor, state $cloudState"
                     )
                     snackbarHelper.showMessageWithDismiss(
-                        this@userCloudAnchor, getString(R.string.snackbar_host_error, cloudState)
+                        this@UserCloudAnchor, getString(R.string.snackbar_host_error, cloudState)
                     )
                     return
                 }
@@ -690,13 +787,13 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
                                 + cloudState
                     )
                     snackbarHelper.showMessageWithDismiss(
-                        this@userCloudAnchor, getString(R.string.snackbar_resolve_error, cloudState)
+                        this@UserCloudAnchor, getString(R.string.snackbar_resolve_error, cloudState)
                     )
                     return
                 }
             }
             snackbarHelper.showMessageWithDismiss(
-                this@userCloudAnchor, getString(R.string.snackbar_resolve_success)
+                this@UserCloudAnchor, getString(R.string.snackbar_resolve_success)
             )
             Log.d(TAG, "CloudAnchorResolveStateListener - onCloudTaskComplete() - Setting new Anchor")
 
@@ -706,7 +803,7 @@ class userCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
         override fun onShowResolveMessage() {
             snackbarHelper.setMaxLines(4)
             snackbarHelper.showMessageWithDismiss(
-                this@userCloudAnchor, getString(R.string.snackbar_resolve_no_result_yet)
+                this@UserCloudAnchor, getString(R.string.snackbar_resolve_no_result_yet)
             )
         }
     }
