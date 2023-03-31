@@ -16,6 +16,7 @@
 package sg.edu.smu.gsrfinder
 
 import android.os.SystemClock
+import android.util.Log
 import com.google.ar.core.Anchor
 import com.google.ar.core.Anchor.CloudAnchorState
 import com.google.ar.core.Session
@@ -87,9 +88,13 @@ internal class CloudAnchorManager {
         Preconditions.checkNotNull(session, "The session cannot be null.")
         val hostIter: MutableIterator<Map.Entry<Anchor, CloudAnchorHostListener>> =
             pendingHostAnchors.entries.iterator()
-        while (hostIter.hasNext()) {
+        while (hostIter.hasNext())
+        {
             val (anchor, listener) = hostIter.next()
-            if (isReturnableState(anchor.cloudAnchorState)) {
+
+            if (isReturnableState(anchor.cloudAnchorState))
+            {
+                Log.d("CloudAnchorManager", "Cloud Anchor state: " + anchor.cloudAnchorState)
                 listener.onCloudTaskComplete(anchor)
                 hostIter.remove()
             }

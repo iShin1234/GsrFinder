@@ -166,13 +166,17 @@ internal class FirebaseManager(context: Context?) {
                     if(snapshot.exists())
                     {
                         for (postSnapshot in snapshot.children) {
-                            val valObj = postSnapshot.child(KEY_ANCHOR_ID).value
-                            if (valObj != null) {
-                                val anchorId = valObj.toString()
-                                if (!anchorId.isEmpty()) {
-                                    listener.invoke(anchorId)
-                                }
+                            if(postSnapshot != null)
+                            {
+                                listener.invoke(postSnapshot);
                             }
+//                            val valObj = postSnapshot.child(KEY_ANCHOR_ID).value
+//                            if (valObj != null) {
+//                                val anchorId = valObj.toString()
+//                                if (!anchorId.isEmpty()) {
+//                                    listener.invoke(anchorId)
+//                                }
+//                            }
                         }
                     }
                 }
