@@ -111,6 +111,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
 
     // Firebase
     private var schGsr: String? = null
+    private var school: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -176,7 +177,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
         val schoolList = resources.getStringArray(R.array.schoolList);
 
         val spinAdapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, schoolList);
-        val spinToSchool = findViewById<Spinner>(R.id.spinToSchool)
+        var spinToSchool = findViewById<Spinner>(R.id.spinToSchool)
         spinToSchool.adapter = spinAdapter
 
         spinToSchool.onItemSelectedListener = object: AdapterView.OnItemSelectedListener
@@ -186,9 +187,8 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
                 Log.d("CloudAnchorActivity", "initSpinToSchool() - onItemSelected()");
                 val selectedString = parent!!.getItemAtPosition(index).toString();
 
-//                spinToSchool = selectedString;
                 Log.d("STRING1: ", selectedString);
-
+                school = selectedString;
                 schGsr = selectedString
 
                 initSpinToRoom(selectedString);
@@ -234,8 +234,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
             {
                 Log.d("CloudAnchorActivity", "showRoom() - onItemSelected()");
                 val selectedString = parent!!.getItemAtPosition(index).toString();
-                Log.d("STRING2: ", selectedString);
-                schGsr += " " + selectedString
+                schGsr = "$school $selectedString"
 
 //                this@CloudAnchorActivity.spinToRoom = selectedString;
             }
@@ -677,6 +676,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
             snackbarHelper.showMessageWithDismiss(
                 this@CloudAnchorActivity, getString(R.string.snackbar_room_code_available)
             )
+            Log.d("CloudAnchorActivty() - onNewRoomCode()", "roomCode: $roomCode")
             checkAndMaybeShare()
             synchronized(singleTapLock) {
                 // Change currentMode to HOSTING after receiving the room code (not when the 'Host' button
@@ -700,7 +700,8 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
             if (roomCode == null || cloudAnchorId == null) {
                 return
             }
-            Log.d("SCHGSR", schGsr!!)
+            Log.d("CloudAnchorActivty() - checkAndMaybeShare()", "roomCode: $roomCode")
+            Log.d("CloudAnchorActivty() - SCHGSR", schGsr!!)
             firebaseManager?.storeAnchorIdInRoom(schGsr!!, roomCode!!, cloudAnchorId)
             snackbarHelper.showMessageWithDismiss(
                 this@CloudAnchorActivity, getString(R.string.snackbar_cloud_id_shared)
@@ -708,6 +709,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
         }
 
         override fun onCloudTaskComplete(anchor: Anchor?) {
+            Log.d("CloudAnchorActivity", "onCloudTaskComplete() - anchor: $anchor")
             val cloudState = anchor?.cloudAnchorState
             if (cloudState != null) {
                 if (cloudState.isError) {
