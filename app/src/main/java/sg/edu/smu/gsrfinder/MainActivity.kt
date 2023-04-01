@@ -3,6 +3,8 @@ package sg.edu.smu.gsrfinder
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
@@ -21,6 +23,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.material.navigation.NavigationView
 import com.google.ar.core.ArCoreApk
+import java.util.*
 
 
 class MainActivity : AppCompatActivity()
@@ -294,8 +297,8 @@ class MainActivity : AppCompatActivity()
         Log.d("MainActivity", "btnGetStartedClicked() - spinToRoom: $spinToRoom");
 
         //Start ArActivity Intent
-        val arIntent = Intent(this, CloudAnchorActivity::class.java)
-        startActivity(arIntent)
+//        val arIntent = Intent(this, CloudAnchorActivity::class.java)
+//        startActivity(arIntent)
 
 
         /* TODO */
@@ -305,7 +308,7 @@ class MainActivity : AppCompatActivity()
         //get user from spinToRoom
 
 
-//        startMapActivity();
+        startMapActivity();
 
 
     }
@@ -332,8 +335,10 @@ class MainActivity : AppCompatActivity()
 
 
                     //Open Map activity intent
-                    val mapIntent = Intent(this, MapsActivity::class.java)
-                    startActivity(mapIntent)
+//                    val mapIntent = Intent(this, MapsActivity::class.java)
+//                    startActivity(mapIntent)
+
+                    getLocationByLatLong(lat, lon);
 
                 }
             })
@@ -344,6 +349,39 @@ class MainActivity : AppCompatActivity()
             //Location request already granted for the app
             Toast.makeText(this, "Please request for location", Toast.LENGTH_SHORT).show()
 
+        }
+    }
+
+    private fun getLocationByLatLong(lat: Double, lon: Double)
+    {
+        val geocoder = Geocoder(this, Locale.getDefault())
+        val addresses: List<Address> = geocoder.getFromLocation(lat, lon, 1) as List<Address>
+        val address: String = addresses[0].getAddressLine(0)
+        val city: String = addresses[0].locality
+        val state: String = addresses[0].adminArea
+        val country: String = addresses[0].countryName
+        val postalCode: String = addresses[0].postalCode
+        val knownName: String = addresses[0].featureName // Only if available else return NULL
+
+        Log.d("MainActivity", "getLocationByLatLong() - address: $address");
+        Log.d("MainActivity", "getLocationByLatLong() - city: $city");
+        Log.d("MainActivity", "getLocationByLatLong() - state: $state");
+        Log.d("MainActivity", "getLocationByLatLong() - country: $country");
+        Log.d("MainActivity", "getLocationByLatLong() - postalCode: $postalCode");
+        Log.d("MainActivity", "getLocationByLatLong() - knownName: $knownName");
+
+        //If address is SMU SCIS, then launch AR
+        if (address.contains("SMU SCIS"))
+        {
+            //Start ArActivity Intent
+            val arIntent = Intent(this, CloudAnchorActivity::class.java)
+            startActivity(arIntent)
+        }
+        else
+        {
+            //Start MapActivity Intent
+            val mapIntent = Intent(this, MapsActivity::class.java)
+            startActivity(mapIntent)
         }
     }
 
