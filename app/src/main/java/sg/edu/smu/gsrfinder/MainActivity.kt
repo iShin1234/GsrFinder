@@ -4,6 +4,8 @@ import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
@@ -24,6 +26,8 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.material.navigation.NavigationView
 import com.google.ar.core.ArCoreApk
+import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException
+import sg.edu.smu.gsrfinder.common.helpers.CameraPermissionHelper
 import java.util.*
 
 
@@ -71,46 +75,17 @@ class MainActivity : AppCompatActivity()
             }
         }
 
-//        val database = FirebaseDatabase.getInstance();
-//        val ref = database.reference.child("User")
-//        ref.child("TempName").setValue("Hello World");
-//
-//        val ref2 = database.reference;
-//
-//        ref2.addValueEventListener(object : ValueEventListener
-//        {
-//            override fun onDataChange(dataSnapshot: DataSnapshot)
-//            {
-//                Log.d("MainActivity", "onDataChange()");
-//                val value = dataSnapshot.child("User").child("TempName").value.toString();
-//                Log.d("MainActivity", "Value is: $value")
-//            }
-//
-//            override fun onCancelled(error: DatabaseError)
-//            {
-//                Log.w("MainActivity", "Failed to read value.", error.toException())
-//            }
-//        })
-
-
         initSpinFrom(true);
         initSpinToSchool();
         initSpinToRoom("SCIS 1");
         maybeEnableArButton();
     }
-    // override the onOptionsItemSelected()
-    // function to implement
-    // the item click listener callback
-    // to open and close the navigation
-    // drawer when the icon is clicked
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
             true
-
         } else {
             super.onOptionsItemSelected(item)
             }
-
         }
 
     /*
@@ -171,6 +146,11 @@ class MainActivity : AppCompatActivity()
     {
         Log.d("MainActivity", "clickAllowLocation()");
 
+        requestLocationPermission();
+    }
+
+    private fun requestLocationPermission()
+    {
         //Get current location
         //Check if user is in SCIS
         //if Yes call -> initSpinFrom(true)
@@ -206,9 +186,8 @@ class MainActivity : AppCompatActivity()
         }
 
 
-        initSpinFrom(false);
+        initSpinFrom(true);
     }
-
 
     /*
      *  1. Show all schools in smu
@@ -304,17 +283,6 @@ class MainActivity : AppCompatActivity()
         val arIntent = Intent(this, CloudAnchorActivity::class.java)
         startActivity(arIntent)
 
-
-        /* TODO */
-        //If user is in SCIS, dependent on floor -> Use Anchor cloud, launch camera and show steps
-        //If user is not in SCIS -> Use geospatial, direct user to SCIS first -> then use anchor cloud
-        //get user from spinToSchool
-        //get user from spinToRoom
-
-
-//        startMapActivity();
-
-
     }
 
     fun startMapActivity()
@@ -322,11 +290,6 @@ class MainActivity : AppCompatActivity()
         if (checkSelfPermission(ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED)
         {
-            //Location request granted
-            Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show()
-
-            // Initialize object
-
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
             fusedLocationClient.lastLocation.addOnSuccessListener(this, OnSuccessListener { location: Location? ->
@@ -337,11 +300,7 @@ class MainActivity : AppCompatActivity()
                     Log.d("MainActivity", "btnGetStartedClicked() - lat: $lat");
                     Log.d("MainActivity", "btnGetStartedClicked() - lon: $lon");
 
-
-                    //Open Map activity intent
-                    val mapIntent = Intent(this, MapsActivity::class.java)
-                    startActivity(mapIntent)
-
+                    getLocationByLatLong(lat, lon);
                 }
             })
 
@@ -350,7 +309,49 @@ class MainActivity : AppCompatActivity()
         {
             //Location request already granted for the app
             Toast.makeText(this, "Please request for location", Toast.LENGTH_SHORT).show()
+            requestLocationPermission();
+        }
+    }
 
+    private fun getLocationByLatLong(lat: Double, lon: Double)
+    {
+        val geocoder = Geocoder(this, Locale.getDefault())
+        val addresses: List<Address> = geocoder.getFromLocation(lat, lon, 1) as List<Address>
+        val address: String = addresses[0].getAddressLine(0)
+        Log.d("MainActivity", "getLocationByLatLong() - address: $address");
+
+        var currentLocation = Location("")
+        currentLocation.latitude = lat
+        currentLocation.longitude = lon
+
+        var scisLat = 1.297465
+        var scisLong = 103.8495169
+
+        var scisLandMark = Location("")
+        scisLandMark.latitude = scisLat
+        scisLandMark.longitude = scisLong
+
+        //This distance is in meter
+        var distanceFromCurrentLocationToLandMark = currentLocation.distanceTo(scisLandMark)
+
+        Log.d("MainActivity", "getLocationByLatLong() - distance: $distanceFromCurrentLocationToLandMark");
+//        val mapIntent = Intent(this, MapsActivity::class.java)
+//        startActivity(mapIntent)
+        if(distanceFromCurrentLocationToLandMark < 50)
+        {
+            //You are in the building, launch AR
+            //Start ArActivity Intent
+            val myIntent = Intent(this, UserCloudAnchorActivity::class.java)
+            myIntent.putExtra("location", "$spinToSchool $spinToRoom")
+            startActivity(myIntent)
+        }
+        else
+        {
+            //else
+            //You are not in the building, direct user to the building first
+            //Start MapActivity Intent
+            val mapIntent = Intent(this, MapsActivity::class.java)
+            startActivity(mapIntent)
         }
     }
 
@@ -371,19 +372,21 @@ class MainActivity : AppCompatActivity()
         if (availability.isSupported)
         {
             Log.d("MainActivity", "maybeEnableArButton() - AR Supported");
-            myArButton.visibility = View.VISIBLE
+//            myArButton.visibility = View.VISIBLE
             myArButton.isEnabled = true
         }
         else
         {
             Log.d("MainActivity", "maybeEnableArButton() - AR Not Supported");
             // The device is unsupported or unknown.
-            myArButton.visibility = View.INVISIBLE
+//            myArButton.visibility = View.INVISIBLE
+            findViewById<TextView>(R.id.tvdisclaimer).text = "Please install Google Play Service for AR";
             myArButton.isEnabled = false
+            setupAR();
         }
     }
 
-    /*// requestInstall(Activity, true) will triggers installation of
+    // requestInstall(Activity, true) will triggers installation of
     // Google Play Services for AR if necessary.
     var mUserRequestedInstall = true
 
@@ -401,30 +404,30 @@ class MainActivity : AppCompatActivity()
         // Ensure that Google Play Services for AR and ARCore device profile data are
         // installed and up to date.
         try {
-            var mSession: Session? = null;
-            if (mSession == null) {
+//            var mSession: Session? = null;
+//            if (mSession == null) {
                 when (ArCoreApk.getInstance().requestInstall(this, mUserRequestedInstall)) {
                     ArCoreApk.InstallStatus.INSTALLED -> {
                         Log.d("MainActivity", "setupAR() - AR Installed");
-                        // Success: Safe to create the AR session.
-
-                        mSession = Session(this);
-
-                        val config = Config(mSession);
-
-                        // Do feature-specific operations here, such as enabling depth or turning on
-                        // support for Augmented Faces.
-                        //https://developers.google.com/ar/develop/cloud-anchors
-                        // Enable Cloud Anchors.
-                        //config.cloudAnchorMode = Config.CloudAnchorMode.ENABLED
-
-                        config.geospatialMode = Config.GeospatialMode.ENABLED
-
-                        // Configure the session.
-                        mSession.configure(config);
-
-                        // Release native heap memory used by an ARCore session.
-                        mSession.close()
+//                        // Success: Safe to create the AR session.
+//
+//                        mSession = Session(this);
+//
+//                        val config = Config(mSession);
+//
+//                        // Do feature-specific operations here, such as enabling depth or turning on
+//                        // support for Augmented Faces.
+//                        //https://developers.google.com/ar/develop/cloud-anchors
+//                        // Enable Cloud Anchors.
+//                        //config.cloudAnchorMode = Config.CloudAnchorMode.ENABLED
+//
+//                        config.geospatialMode = Config.GeospatialMode.ENABLED
+//
+//                        // Configure the session.
+//                        mSession.configure(config);
+//
+//                        // Release native heap memory used by an ARCore session.
+//                        mSession.close()
 
                     }
                     ArCoreApk.InstallStatus.INSTALL_REQUESTED -> {
@@ -442,7 +445,7 @@ class MainActivity : AppCompatActivity()
                         return
                     }
                 }
-            }
+//            }
         }
         catch (e: UnavailableUserDeclinedInstallationException)
         {
@@ -451,12 +454,14 @@ class MainActivity : AppCompatActivity()
                 .show()
             return
         }
-    }*/
+    }
 
     override fun onResume()
     {
         Log.d("MainActivity", "onResume()");
         super.onResume()
+
+        maybeEnableArButton();
     }
 
     fun btnGetStartedClicked(view: View) {
@@ -464,9 +469,8 @@ class MainActivity : AppCompatActivity()
         Log.d("BTNCLICKSPINTO",spinToSchool)
         Log.d("BTNCLICKSPINTO",spinToRoom)
 
-        val myIntent = Intent(this, UserCloudAnchorActivity::class.java)
-        myIntent.putExtra("location", spinToSchool.toString() + " " + spinToRoom.toString())
-        startActivity(myIntent)
+
+        startMapActivity()
     }
 
     fun textToSpeechClick(view: View) {

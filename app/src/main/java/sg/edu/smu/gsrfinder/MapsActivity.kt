@@ -49,7 +49,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback
         // Add a marker in SMU and move the camera
         val smu = LatLng(1.297465, 103.8495169)
         mMap.addMarker(MarkerOptions().position(smu).title("SCIS"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(smu, 15f))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(smu, 18f))
 
         mMap.addCircle(
             CircleOptions()
