@@ -1,12 +1,15 @@
 package sg.edu.smu.gsrfinder
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -21,6 +24,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.material.navigation.NavigationView
 import com.google.ar.core.ArCoreApk
+import java.util.*
 
 
 class MainActivity : AppCompatActivity()
@@ -32,6 +36,10 @@ class MainActivity : AppCompatActivity()
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView;
     private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
+
+    // speech to text
+    private val RQ_SPEECH_REC = 102
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
         Log.d("MainActivity", "onCreate()");
@@ -62,7 +70,6 @@ class MainActivity : AppCompatActivity()
                 else -> false
             }
         }
-
 
 //        val database = FirebaseDatabase.getInstance();
 //        val ref = database.reference.child("User")
@@ -460,6 +467,102 @@ class MainActivity : AppCompatActivity()
         val myIntent = Intent(this, UserCloudAnchorActivity::class.java)
         myIntent.putExtra("location", spinToSchool.toString() + " " + spinToRoom.toString())
         startActivity(myIntent)
+    }
+
+    fun textToSpeechClick(view: View) {
+        askSpeechInput()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == RQ_SPEECH_REC && resultCode == Activity.RESULT_OK) {
+            val result = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            manipulateText(result?.get(0).toString())
+        }
+    }
+
+    private fun manipulateText(showText:String) {
+        val schoolList = resources.getStringArray(R.array.schoolList)
+        val scis2soeGsrList = resources.getStringArray(R.array.scis2soeGsrList)
+        val scis1GsrList = resources.getStringArray(R.array.scis1GsrList)
+
+        // spoken text
+        var editedSpokenText = showText.replace(" ", "")
+        var capsSpokenEditedText = editedSpokenText.uppercase()
+
+        // status
+        var schStatus = false
+        var gsrStatus = false
+
+        // where to go
+        var venue = ""
+
+        for (sch in schoolList) {
+
+            if (sch == "SCIS 2/SOE") {
+                var newSchList = sch.split("/")
+                for (newSch in newSchList) {
+                    var editedSch = newSch.replace(" ", "")
+                    if (capsSpokenEditedText.contains(editedSch)) {
+                        schStatus = true
+                        // check gsr
+                        for (gsr in scis2soeGsrList) {
+                            var newGsr = gsr.replace(" ", "")
+                            var newGsr2 = newGsr.replace("-", "")
+
+                            Log.d("editedGSR", newGsr2)
+
+                            if (capsSpokenEditedText.contains(newGsr2)) {
+                                venue = sch.toString() + " " + gsr.toString()
+                                Log.d("VENUE", venue)
+                                gsrStatus = true
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                var editedSch = sch.replace(" ", "")
+                if (capsSpokenEditedText.contains(editedSch)) {
+                    schStatus = true
+                    // check gsr
+                    for (gsr in scis1GsrList) {
+                        var newGsr = gsr.replace(" ", "")
+                        var newGsr2 = newGsr.replace("-", "")
+
+                        Log.d("editedGSR", newGsr2)
+
+                        if (capsSpokenEditedText.contains(newGsr2)) {
+                            venue = sch.toString() + " " + gsr.toString()
+                            Log.d("VENUE", venue)
+                            gsrStatus = true
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!schStatus or !gsrStatus) {
+            Toast.makeText(this, "No such school/gsr, please try again.", Toast.LENGTH_SHORT).show()
+        }
+
+        if (schStatus && gsrStatus) {
+            Toast.makeText(this, "School exists!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun askSpeechInput() {
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            Toast.makeText(this, "Speech recognition is not available", Toast.LENGTH_SHORT).show()
+        }
+        else {
+            val i = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            i.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say Something!")
+            startActivityForResult(i, RQ_SPEECH_REC)
+        }
     }
 //
 //    override fun onRequestPermissionsResult(
