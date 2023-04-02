@@ -146,11 +146,10 @@
                 android:id="@+id/imageButton"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
+                android:onClick="textToSpeechClick"
                 android:backgroundTint="#00FFFFFF"
                 app:srcCompat="@drawable/icons8_microphone_30" />
         </LinearLayout>
-
-
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
