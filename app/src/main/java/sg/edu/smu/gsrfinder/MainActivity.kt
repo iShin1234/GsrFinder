@@ -522,7 +522,7 @@ class MainActivity : AppCompatActivity()
                     }
                 }
             }
-            else {
+            else if (sch == "SCIS 1") {
                 var editedSch = sch.replace(" ", "")
                 if (capsSpokenEditedText.contains(editedSch)) {
                     schStatus = true
