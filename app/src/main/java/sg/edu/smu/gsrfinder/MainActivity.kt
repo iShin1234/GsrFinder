@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -324,20 +325,48 @@ class MainActivity : AppCompatActivity()
         currentLocation.latitude = lat
         currentLocation.longitude = lon
 
-        var scisLat = 1.297465
-        var scisLong = 103.8495169
+        var distanceFromCurrentLocationToLandMark: Float? = null;
+//        var url = "";
 
-        var scisLandMark = Location("")
-        scisLandMark.latitude = scisLat
-        scisLandMark.longitude = scisLong
+        if(spinToSchool == "SCIS 1")
+        {
+            //SCIS 1
+            var scisLat = 1.297465
+            var scisLong = 103.8495169
 
-        //This distance is in meter
-        var distanceFromCurrentLocationToLandMark = currentLocation.distanceTo(scisLandMark)
+            var scisLandMark = Location("")
+            scisLandMark.latitude = scisLat
+            scisLandMark.longitude = scisLong
+
+            //This distance is in meter
+            distanceFromCurrentLocationToLandMark = currentLocation.distanceTo(scisLandMark)
+
+//            url = "http://maps.googleapis.com/maps/api/directions/xml?origin=$lat,$lon&destination=$scisLat,$scisLong&sensor=false&units=metric&mode=walking";
+
+            Log.d("MainActivity", "getLocationByLatLong() - distance: $distanceFromCurrentLocationToLandMark");
+        }
+        else if(spinToSchool == "SCIS 2/SOE")
+        {
+            //SCIS 2/SOE
+            var scisLat = 1.2977584
+            var scisLong = 103.8486792
+
+            var scisLandMark = Location("")
+            scisLandMark.latitude = scisLat
+            scisLandMark.longitude = scisLong
+
+            //This distance is in meter
+            distanceFromCurrentLocationToLandMark = currentLocation.distanceTo(scisLandMark)
+
+//            url = "http://maps.googleapis.com/maps/api/directions/xml?origin=$lat,$lon&destination=$scisLat,$scisLong&sensor=false&units=metric&mode=walking";
+
+            Log.d("MainActivity", "getLocationByLatLong() - distance: $distanceFromCurrentLocationToLandMark");
+        }
 
         Log.d("MainActivity", "getLocationByLatLong() - distance: $distanceFromCurrentLocationToLandMark");
 //        val mapIntent = Intent(this, MapsActivity::class.java)
 //        startActivity(mapIntent)
-        if(distanceFromCurrentLocationToLandMark < 50)
+        if(distanceFromCurrentLocationToLandMark!! < 50)
         {
             //You are in the building, launch AR
             //Start ArActivity Intent
@@ -351,7 +380,13 @@ class MainActivity : AppCompatActivity()
             //You are not in the building, direct user to the building first
             //Start MapActivity Intent
             val mapIntent = Intent(this, MapsActivity::class.java)
-            startActivity(mapIntent)
+            mapIntent.putExtra("location", "$spinToSchool");
+            mapIntent.putExtra("lat", lat);
+            mapIntent.putExtra("lon", lon);
+            startActivity(mapIntent);
+
+//            val newMapIntent = Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
+//            startActivity(newMapIntent)
         }
     }
 
@@ -568,21 +603,4 @@ class MainActivity : AppCompatActivity()
             startActivityForResult(i, RQ_SPEECH_REC)
         }
     }
-//
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<String>,
-//        results: IntArray
-//    ) {
-//        Log.d("MainActivity", "onRequestPermissionsResult()");
-//        super.onRequestPermissionsResult(requestCode, permissions, results)
-//        if (!CameraPermissionHelper.hasCameraPermission(this))
-//        {
-//            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {
-//                // Permission denied with checking "Do not ask again".
-//                CameraPermissionHelper.launchPermissionSettings(this)
-//            }
-//            finish()
-//        }
-//    }
 }

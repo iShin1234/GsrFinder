@@ -7,10 +7,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.Circle
-import com.google.android.gms.maps.model.CircleOptions
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import sg.edu.smu.gsrfinder.databinding.ActivityMapsBinding
 
 
@@ -19,6 +16,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
+    private var currentLat = 0.0
+    private var currentLong = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -46,18 +45,80 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback
     {
         mMap = googleMap
 
-        // Add a marker in SMU and move the camera
-        val smu = LatLng(1.297465, 103.8495169)
-        mMap.addMarker(MarkerOptions().position(smu).title("SCIS"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(smu, 18f))
+        var smu: LatLng? = null;
 
-        mMap.addCircle(
-            CircleOptions()
-                .center(smu)
-                .radius(30.0)
-                .strokeColor(Color.argb(128, 0, 0, 255))
-                .fillColor(Color.argb(32, 0, 0, 255))
+        // Add a marker in SMU and move the camera
+        if(intent.getStringExtra("location") == "SCIS 1")
+        {
+            smu = LatLng(1.297465, 103.8495169)
+            mMap.addMarker(MarkerOptions().position(smu).title("SCIS 1"))
+        }
+        else
+        {
+            smu = LatLng(1.2977584, 103.8486792)
+            mMap.addMarker(MarkerOptions().position(smu).title("SCIS 2/SOE"))
+        }
+
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(smu, 18f))
+
+//        mMap.addCircle(
+//            CircleOptions()
+//                .center(smu)
+//                .radius(30.0)
+//                .strokeColor(Color.argb(128, 0, 0, 255))
+//                .fillColor(Color.argb(32, 0, 0, 255))
+//        )
+
+        val lat = intent.getDoubleExtra("lat", 0.0)
+        val lon = intent.getDoubleExtra("lon", 0.0)
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat,lon), 18f))
+        mMap.addMarker(MarkerOptions().position(LatLng(lat,lon)).title("Your Current Location"))
+
+        val points = mutableListOf(LatLng(lat, lon), smu)
+
+        // PolylineOptions that defines the characteristics of line
+        // PolylineOptions that defines the characteristics of line
+        val mPolylineOptions = PolylineOptions()
+        // points of line
+        // points of line
+        mPolylineOptions.addAll(points)
+        // width of line that will be drawn
+        // width of line that will be drawn
+        mPolylineOptions.width(16f)
+        // and add the color of your line and other properties
+        // and add the color of your line and other properties
+        mPolylineOptions.color(Color.parseColor("#1976D2")).geodesic(true).zIndex(8f)
+        // finally draw the lines on the map
+        // finally draw the lines on the map
+        val line1 = mMap.addPolyline(mPolylineOptions)
+        // change the width and color
+        // change the width and color
+        mPolylineOptions.width(14f)
+        mPolylineOptions.color(Color.parseColor("#2196F3")).geodesic(true).zIndex(8f)
+        val line2 = mMap.addPolyline(mPolylineOptions)
+
+        mMap.addPolyline(
+            line1.points.map { LatLng(it.latitude, it.longitude) }.let {
+                PolylineOptions()
+                    .addAll(it)
+                    .width(16f)
+                    .color(Color.parseColor("#1976D2"))
+                    .geodesic(true)
+                    .zIndex(8f)
+            }
         )
 
+        mMap.addPolyline(
+            line2.points.map { LatLng(it.latitude, it.longitude) }.let {
+                PolylineOptions()
+                    .addAll(it)
+                    .width(14f)
+                    .color(Color.parseColor("#2196F3"))
+                    .geodesic(true)
+                    .zIndex(8f)
+            }
+        )
     }
+
 }
