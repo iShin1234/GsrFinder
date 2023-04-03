@@ -350,7 +350,7 @@ class UserCloudAnchor() : AppCompatActivity(), GLSurfaceView.Renderer,
             backgroundRenderer.createOnGlThread(this)
             planeRenderer.createOnGlThread(this, "models/trigrid.png")
             pointCloudRenderer.createOnGlThread(this)
-            virtualObject.createOnGlThread(this, "models/andy.obj", "models/andy.png")
+            virtualObject.createOnGlThread(this, "models/sphere.obj", "models/sphere.png")
             virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f)
             virtualObjectShadow.createOnGlThread(
                 this, "models/andy_shadow.obj", "models/andy_shadow.png"
