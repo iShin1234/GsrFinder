@@ -286,7 +286,7 @@ class MainActivity : AppCompatActivity()
 
     }
 
-    fun startMapActivity()
+    fun startMapActivity(destination:String)
     {
         if (checkSelfPermission(ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED)
@@ -301,7 +301,7 @@ class MainActivity : AppCompatActivity()
                     Log.d("MainActivity", "btnGetStartedClicked() - lat: $lat");
                     Log.d("MainActivity", "btnGetStartedClicked() - lon: $lon");
 
-                    getLocationByLatLong(lat, lon);
+                    getLocationByLatLong(lat, lon, destination);
                 }
             })
 
@@ -314,8 +314,9 @@ class MainActivity : AppCompatActivity()
         }
     }
 
-    private fun getLocationByLatLong(lat: Double, lon: Double)
+    private fun getLocationByLatLong(lat: Double, lon: Double, destination: String)
     {
+        Log.d("RE-DIRECT", destination)
         val geocoder = Geocoder(this, Locale.getDefault())
         val addresses: List<Address> = geocoder.getFromLocation(lat, lon, 1) as List<Address>
         val address: String = addresses[0].getAddressLine(0)
@@ -328,7 +329,10 @@ class MainActivity : AppCompatActivity()
         var distanceFromCurrentLocationToLandMark: Float? = null;
 //        var url = "";
 
-        if(spinToSchool == "SCIS 1")
+        val mapIntent = Intent(this, MapsActivity::class.java)
+
+
+        if(spinToSchool == "SCIS 1" && destination == "" || destination.contains("SCIS 1"))
         {
             //SCIS 1
             var scisLat = 1.297465
@@ -340,12 +344,13 @@ class MainActivity : AppCompatActivity()
 
             //This distance is in meter
             distanceFromCurrentLocationToLandMark = currentLocation.distanceTo(scisLandMark)
+            mapIntent.putExtra("location", "SCIS 1");
 
 //            url = "http://maps.googleapis.com/maps/api/directions/xml?origin=$lat,$lon&destination=$scisLat,$scisLong&sensor=false&units=metric&mode=walking";
 
             Log.d("MainActivity", "getLocationByLatLong() - distance: $distanceFromCurrentLocationToLandMark");
         }
-        else if(spinToSchool == "SCIS 2/SOE")
+        else if(spinToSchool == "SCIS 2/SOE" && destination == "" || destination.contains("SCIS 2/SOE"))
         {
             //SCIS 2/SOE
             var scisLat = 1.2977584
@@ -357,6 +362,7 @@ class MainActivity : AppCompatActivity()
 
             //This distance is in meter
             distanceFromCurrentLocationToLandMark = currentLocation.distanceTo(scisLandMark)
+            mapIntent.putExtra("location", "SCIS 2");
 
 //            url = "http://maps.googleapis.com/maps/api/directions/xml?origin=$lat,$lon&destination=$scisLat,$scisLong&sensor=false&units=metric&mode=walking";
 
@@ -379,8 +385,7 @@ class MainActivity : AppCompatActivity()
             //else
             //You are not in the building, direct user to the building first
             //Start MapActivity Intent
-            val mapIntent = Intent(this, MapsActivity::class.java)
-            mapIntent.putExtra("location", "$spinToSchool");
+
             mapIntent.putExtra("lat", lat);
             mapIntent.putExtra("lon", lon);
             startActivity(mapIntent);
@@ -505,7 +510,7 @@ class MainActivity : AppCompatActivity()
         Log.d("BTNCLICKSPINTO",spinToRoom)
 
 
-        startMapActivity()
+        startMapActivity("")
     }
 
     fun textToSpeechClick(view: View) {
@@ -587,7 +592,11 @@ class MainActivity : AppCompatActivity()
         }
 
         if (schStatus && gsrStatus) {
-            Toast.makeText(this, "School exists!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "School exists! Opening AR", Toast.LENGTH_SHORT).show()
+            //Log.d("SCHOOL EXISTS", venue)
+            //School exists
+            //Start ArActivity Intent
+            startMapActivity(venue)
         }
     }
 
