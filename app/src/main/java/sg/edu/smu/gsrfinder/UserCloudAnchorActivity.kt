@@ -52,7 +52,7 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
     private val backgroundRenderer: BackgroundRenderer = BackgroundRenderer()
     private val virtualObject: ObjectRenderer = ObjectRenderer()
     private val virtualObjectShadow: ObjectRenderer = ObjectRenderer()
-    private val planeRenderer: PlaneRenderer = PlaneRenderer()
+//    private val planeRenderer: PlaneRenderer = PlaneRenderer()
     private val pointCloudRenderer: PointCloudRenderer = PointCloudRenderer()
     private var installRequested = false
 
@@ -282,7 +282,7 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
         {
             // Create the texture and pass it to ARCore session to be filled during update().
             backgroundRenderer.createOnGlThread(this)
-            planeRenderer.createOnGlThread(this, "models/trigrid.png")
+//            planeRenderer.createOnGlThread(this, "models/trigrid.png")
             pointCloudRenderer.createOnGlThread(this)
             virtualObject.createOnGlThread(this, "models/andy.obj", "models/andy.png")
             virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f)
@@ -346,11 +346,11 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
                 pointCloudRenderer.draw(viewMatrix, projectionMatrix)
             }
 
-            planeRenderer.drawPlanes(
-                session!!.getAllTrackables(Plane::class.java),
-                camera.displayOrientedPose,
-                projectionMatrix
-            )
+//            planeRenderer.drawPlanes(
+//                session!!.getAllTrackables(Plane::class.java),
+//                camera.displayOrientedPose,
+//                projectionMatrix
+//            )
 
             synchronized(anchorLock)
             {
@@ -579,7 +579,7 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
     companion object
     {
         private val TAG = CloudAnchorActivity::class.java.simpleName
-        private val OBJECT_COLOR = floatArrayOf(139.0f, 195.0f, 74.0f, 255.0f)
+        private val OBJECT_COLOR = floatArrayOf(53.0f, 24.0f, 255.0f, 255.0f)
         private const val PREFERENCE_FILE_KEY = "allow_sharing_images"
         private const val ALLOW_SHARE_IMAGES_KEY = "ALLOW_SHARE_IMAGES"
     }

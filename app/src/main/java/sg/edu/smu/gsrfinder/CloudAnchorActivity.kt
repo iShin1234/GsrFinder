@@ -922,7 +922,7 @@ class CloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer,
 
     companion object {
         private val TAG = CloudAnchorActivity::class.java.simpleName
-        private val OBJECT_COLOR = floatArrayOf(139.0f, 195.0f, 74.0f, 255.0f)
+        private val OBJECT_COLOR = floatArrayOf(53.0f, 24.0f, 255.0f, 255.0f)
         private val PREFERENCE_FILE_KEY = "allow_sharing_images"
         private val ALLOW_SHARE_IMAGES_KEY = "ALLOW_SHARE_IMAGES"
 

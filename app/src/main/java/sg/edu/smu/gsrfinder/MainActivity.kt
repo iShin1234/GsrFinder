@@ -377,8 +377,16 @@ class MainActivity : AppCompatActivity()
             //You are in the building, launch AR
             //Start ArActivity Intent
             val myIntent = Intent(this, UserCloudAnchorActivity::class.java)
-            myIntent.putExtra("location", "$spinToSchool $spinToRoom")
-            startActivity(myIntent)
+
+            if(destination != "")
+            {
+                myIntent.putExtra("location", destination)
+                startActivity(myIntent)
+            }
+            else {
+                myIntent.putExtra("location", "$spinToSchool $spinToRoom")
+                startActivity(myIntent)
+            }
         }
         else
         {
