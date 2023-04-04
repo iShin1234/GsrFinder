@@ -1,6 +1,7 @@
 package sg.edu.smu.gsrfinder
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.Manifest.permission.RECORD_AUDIO
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -20,6 +21,7 @@ import android.widget.*
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -164,7 +166,7 @@ class MainActivity : AppCompatActivity()
                 != PackageManager.PERMISSION_GRANTED)
             {
                 //Location request granted
-                Toast.makeText(this, "Requesting Permission", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, "Requesting Permission", Toast.LENGTH_SHORT).show()
             }
 
             if (ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity,
@@ -522,7 +524,35 @@ class MainActivity : AppCompatActivity()
     }
 
     fun textToSpeechClick(view: View) {
-        askSpeechInput()
+        if (ContextCompat.checkSelfPermission(this@MainActivity,
+                RECORD_AUDIO) !==
+            PackageManager.PERMISSION_GRANTED)
+        {
+            if (checkSelfPermission(RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED)
+            {
+                //Granding audio request
+                //Toast.makeText(this, "Requesting Permission", Toast.LENGTH_SHORT).show()
+            }
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity,
+                    RECORD_AUDIO))
+            {
+                ActivityCompat.requestPermissions(this@MainActivity,
+                    arrayOf(RECORD_AUDIO), 1)
+            }
+            else
+            {
+                ActivityCompat.requestPermissions(this@MainActivity,
+                    arrayOf(RECORD_AUDIO), 1)
+            }
+        }
+        else
+        {
+            //Audio request already granted for the app
+            Toast.makeText(this, "Permission already granted", Toast.LENGTH_SHORT).show()
+            askSpeechInput()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
