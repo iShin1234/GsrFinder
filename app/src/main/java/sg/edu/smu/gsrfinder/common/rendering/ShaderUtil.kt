@@ -1,7 +1,7 @@
 /*
  * Copyright 2017 Google LLC
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -107,9 +107,9 @@ object ShaderUtil {
      */
     @Throws(IOException::class)
     private fun readShaderFileFromAssets(context: Context, filename: String): String {
-        val inputStream = context.assets.open(filename);
-        val reader = BufferedReader(InputStreamReader(inputStream));
-        val sb = StringBuilder();
+        val inputStream = context.assets.open(filename)
+        val reader = BufferedReader(InputStreamReader(inputStream))
+        val sb = StringBuilder()
 
         System.out.println("Try reading from file " + filename)
         //reader readline and print line
@@ -119,7 +119,7 @@ object ShaderUtil {
             val tokens = line.split(" ".toRegex()).toTypedArray()
             if (tokens[0].equals("#include"))
             {
-                var includeFilename = tokens[1].toString();
+                var includeFilename = tokens[1].toString()
                 includeFilename = includeFilename.replace("\"", "")
                 if (includeFilename == filename) {
                     throw IOException("Do not include the calling file.")
@@ -131,6 +131,6 @@ object ShaderUtil {
                 sb.append(line).append("\n")
             }
         }
-        return sb.toString();
+        return sb.toString()
     }
 }

@@ -44,19 +44,18 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
 {
     private enum class HostResolveMode
     {
-        NONE, HOSTING, RESOLVING
+        NONE, RESOLVING
     }
 
-    // Rendering. The Renderers are created here, and initialized when the GL surface is created.
+    //Rendering. The Renderers are created here, and initialized when the GL surface is created.
     private var surfaceView: GLSurfaceView? = null
     private val backgroundRenderer: BackgroundRenderer = BackgroundRenderer()
     private val virtualObject: ObjectRenderer = ObjectRenderer()
     private val virtualObjectShadow: ObjectRenderer = ObjectRenderer()
-//    private val planeRenderer: PlaneRenderer = PlaneRenderer()
     private val pointCloudRenderer: PointCloudRenderer = PointCloudRenderer()
     private var installRequested = false
 
-    // Temporary matrices allocated here to reduce number of allocations for each frame.
+    //Temporary matrices allocated here to reduce number of allocations for each frame.
     private val viewMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
 
@@ -89,9 +88,19 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
     {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_cloud_anchor)
-        surfaceView = findViewById<GLSurfaceView>(R.id.surfaceview)
+
+        setUpSurfaceView()
+        initFirebaseManager()
+        showLocation()
+    }
+
+    private fun setUpSurfaceView()
+    {
+        Log.d(TAG, "setUpSurfaceView()")
+
         displayRotationHelper = DisplayRotationHelper(this)
 
+        surfaceView = findViewById(R.id.surfaceview)
         // Set up renderer.
         surfaceView?.setPreserveEGLContextOnPause(true)
         surfaceView?.setEGLContextClientVersion(2)
@@ -100,36 +109,35 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
         surfaceView?.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY)
         surfaceView?.setWillNotDraw(false)
         installRequested = false
+    }
 
-        // Initialize Cloud Anchor variables.
+    private fun initFirebaseManager()
+    {
+        Log.d(TAG, "initFirebaseManager()")
+
         firebaseManager = FirebaseManager(this)
         currentMode = HostResolveMode.NONE
         sharedPreferences = getSharedPreferences(PREFERENCE_FILE_KEY, MODE_PRIVATE)
-
-        showLocation()
     }
 
     private fun showLocation ()
     {
-        var location = intent.getStringExtra("location").toString();
-        findViewById<TextView>(R.id.location).text = location
+        Log.d(TAG, "showLocation()")
 
+        var location = intent.getStringExtra("location").toString()
+        findViewById<TextView>(R.id.location).text = location
         this.location = location
 
-        onResolve();
+        onResolve()
     }
 
     override fun onDestroy()
     {
-        Log.d("UserCloudAnchorActivity", "onDestroy()");
+        Log.d(TAG, "onDestroy()")
 
-        resetMode();
+        resetMode()
         if (session != null)
         {
-            // Explicitly close ARCore Session to release native resources.
-            // Review the API reference for important considerations before calling close() in apps with
-            // more complicated lifecycle requirements:
-            // https://developers.google.com/ar/reference/java/arcore/reference/com/google/ar/core/Session#close()
             session!!.close()
             session = null
         }
@@ -138,11 +146,13 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
 
     override fun onResume()
     {
+        Log.d(TAG, "onResume()")
+
         super.onResume()
-        Log.d("UserCloudAnchorActivity", "onResume()");
+        Log.d("UserCloudAnchorActivity", "onResume()")
         if (sharedPreferences!!.getBoolean(ALLOW_SHARE_IMAGES_KEY, false))
         {
-            Log.d("UserCloudAnchorActivity", "Allowing image sharing.");
+            Log.d("UserCloudAnchorActivity", "Allowing image sharing.")
             createSession()
         }
         surfaceView!!.onResume()
@@ -151,15 +161,14 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
 
     private fun createSession()
     {
-        Log.d("UserCloudAnchorActivity", "createSession()");
+        Log.d(TAG, "createSession()")
         if (session == null)
         {
-            Log.d("UserCloudAnchorActivity", "Creating session");
             var exception: Exception? = null
             var messageId = -1
+
             try
             {
-                Log.d("UserCloudAnchorActivity", "Check if ARCore is installed");
                 when (ArCoreApk.getInstance().requestInstall(this, !installRequested))
                 {
                     InstallStatus.INSTALL_REQUESTED ->
@@ -169,9 +178,9 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
                     }
                     InstallStatus.INSTALLED -> {}
                 }
-                // ARCore requires camera permissions to operate. If we did not yet obtain runtime
-                // permission on Android M and above, now is a good time to ask the user for it.
-                if (!CameraPermissionHelper.hasCameraPermission(this)) {
+
+                if (!CameraPermissionHelper.hasCameraPermission(this))
+                {
                     CameraPermissionHelper.requestCameraPermission(this)
                     return
                 }
@@ -204,16 +213,13 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
                 return
             }
 
-            // Create default config and check if supported.
             val config = Config(session)
-            config.setCloudAnchorMode(CloudAnchorMode.ENABLED)
+            config.cloudAnchorMode = CloudAnchorMode.ENABLED
             session!!.configure(config)
 
-            // Setting the session in the HostManager.
             cloudManager.setSession(session)
         }
 
-        // Note that order matters - see the note in onPause(), the reverse applies here.
         try
         {
             session!!.resume()
@@ -229,14 +235,11 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
     public override fun onPause()
     {
         super.onPause()
-        Log.d("UserCloudAnchorActivity", "onPause()");
+        Log.d("UserCloudAnchorActivity", "onPause()")
 
         if (session != null)
         {
-            Log.d("UserCloudAnchorActivity", "Pausing session.");
-            // Note that the order matters - GLSurfaceView is paused first so that it does not try
-            // to query the session. If Session is paused before GLSurfaceView, GLSurfaceView may
-            // still call session.update() and get a SessionPausedException.
+            Log.d("UserCloudAnchorActivity", "Pausing session.")
 
             displayRotationHelper?.onPause()
             surfaceView!!.onPause()
@@ -244,22 +247,16 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        results: IntArray
-    )
+    override fun onRequestPermissionsResult(requestCode: Int,permissions: Array<String>,results: IntArray)
     {
+        Log.d(TAG, "onRequestPermissionsResult()")
+
         super.onRequestPermissionsResult(requestCode, permissions, results)
-        if (!CameraPermissionHelper.hasCameraPermission(this)) {
-            Toast.makeText(
-                this,
-                "Camera permission is needed to run this application",
-                Toast.LENGTH_LONG
-            )
-                .show()
-            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {
-                // Permission denied with checking "Do not ask again".
+        if (!CameraPermissionHelper.hasCameraPermission(this))
+        {
+            Toast.makeText(this,"Camera permission is needed to run this application",Toast.LENGTH_LONG).show()
+            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this))
+            {
                 CameraPermissionHelper.launchPermissionSettings(this)
             }
             finish()
@@ -268,27 +265,25 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
 
     override fun onWindowFocusChanged(hasFocus: Boolean)
     {
+        Log.d(TAG, "onWindowFocusChanged()")
+
         super.onWindowFocusChanged(hasFocus)
-        Log.d("ARCore", "onWindowFocusChanged");
         FullScreenHelper.setFullScreenOnWindowFocusChanged(this, hasFocus)
     }
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig)
     {
+        Log.d(TAG, "onSurfaceCreated()")
+
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
 
-        // Prepare the rendering objects. This involves reading shaders, so may throw an IOException.
         try
         {
-            // Create the texture and pass it to ARCore session to be filled during update().
             backgroundRenderer.createOnGlThread(this)
-//            planeRenderer.createOnGlThread(this, "models/trigrid.png")
             pointCloudRenderer.createOnGlThread(this)
             virtualObject.createOnGlThread(this, "models/andy.obj", "models/andy.png")
             virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f)
-            virtualObjectShadow.createOnGlThread(
-                this, "models/andy_shadow.obj", "models/andy_shadow.png"
-            )
+            virtualObjectShadow.createOnGlThread(this, "models/andy_shadow.obj", "models/andy_shadow.png")
             virtualObjectShadow.setBlendMode(BlendMode.Shadow)
             virtualObjectShadow.setMaterialProperties(1.0f, 0.0f, 0.0f, 1.0f)
         }
@@ -300,45 +295,41 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
 
     override fun onSurfaceChanged(gl: GL10, width: Int, height: Int)
     {
+        Log.d(TAG, "onSurfaceChanged()")
+
         displayRotationHelper?.onSurfaceChanged(width, height)
         GLES20.glViewport(0, 0, width, height)
     }
 
     override fun onDrawFrame(gl: GL10)
     {
-        // Clear screen to notify driver it should not load any pixels from previous frame.
+        Log.d(TAG, "onDrawFrame()")
+
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-        if (session == null) {
+        if (session == null)
+        {
             return
         }
-        // Notify ARCore session that the view size changed so that the perspective matrix and
-        // the video background can be properly adjusted.
+
         displayRotationHelper?.updateSessionIfNeeded(session!!)
-        try {
+
+        try
+        {
             session!!.setCameraTextureName(backgroundRenderer.textureId)
 
-            // Obtain the current frame from ARSession. When the configuration is set to
-            // UpdateMode.BLOCKING (it is by default), this will throttle the rendering to the
-            // camera framerate.
             val frame = session!!.update()
             val camera = frame.camera
             val cameraTrackingState = camera.trackingState
 
-            // Notify the cloudManager of all the updates.
             cloudManager.onUpdate()
-
-            // If frame is ready, render camera preview image to the GL surface.
             backgroundRenderer.draw(frame)
-
-            // Keep the screen unlocked while tracking, but allow it to lock when tracking stops.
             trackingStateHelper.updateKeepScreenOnFlag(camera.trackingState)
 
-            // If not tracking, don't draw 3d objects.
-            if (cameraTrackingState == TrackingState.PAUSED) {
+            if (cameraTrackingState == TrackingState.PAUSED)
+            {
                 return
             }
 
-            // Get camera and projection matrices.
             camera.getViewMatrix(viewMatrix, 0)
             camera.getProjectionMatrix(projectionMatrix, 0, 0.1f, 100.0f)
             frame.acquirePointCloud().use { pointCloud ->
@@ -346,25 +337,14 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
                 pointCloudRenderer.draw(viewMatrix, projectionMatrix)
             }
 
-//            planeRenderer.drawPlanes(
-//                session!!.getAllTrackables(Plane::class.java),
-//                camera.displayOrientedPose,
-//                projectionMatrix
-//            )
-
             synchronized(anchorLock)
             {
                 if(anchors.isNotEmpty())
                 {
-                    Log.d(TAG, "anchors is not null");
-                    Log.d(TAG, anchors.toString());
-
                     for(i in 0 until anchors.size)
                     {
-                        val anchorMap = anchors[i];
-                        val anchor = anchorMap["anchor"] as Anchor;
-
-                        Log.d(TAG, "anchors[$i] is not null");
+                        val anchorMap = anchors[i]
+                        val anchor = anchorMap["anchor"] as Anchor
 
                         if (anchor.trackingState == TrackingState.TRACKING)
                         {
@@ -379,17 +359,16 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
             {
                 for(i in 0 until anchors.size)
                 {
-                    val anchorMap = anchors[i];
-                    val shouldDrawAnchor = anchorMap["shouldDrawAnchor"] as Boolean;
-                    val newAnchorMatrix = anchorMap["matrix"] as FloatArray;
+                    val anchorMap = anchors[i]
+                    val shouldDrawAnchor = anchorMap["shouldDrawAnchor"] as Boolean
+                    val newAnchorMatrix = anchorMap["matrix"] as FloatArray
 
                     if(shouldDrawAnchor)
                     {
-                        Log.d(TAG, "shouldDrawAnchor true for $i");
+                        Log.d(TAG, "shouldDrawAnchor true for $i")
                         val colorCorrectionRgba = FloatArray(4)
                         frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
 
-                        // Update and draw the model and its shadow.
                         val scaleFactor = 1.0f
                         virtualObject.updateModelMatrix(newAnchorMatrix, scaleFactor)
                         virtualObjectShadow.updateModelMatrix(newAnchorMatrix, scaleFactor)
@@ -398,31 +377,34 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
                     }
                 }
             }
-        } catch (t: Throwable) {
-            // Avoid crashing the application due to unhandled exceptions.
+        }
+        catch (t: Throwable)
+        {
             Log.e(TAG, "Exception on the OpenGL thread", t)
         }
     }
 
-    /** Sets the new value of the current anchor. Detaches the old anchor, if it was non-null.  */
-    private fun setNewAnchor(newAnchor: Anchor?) {
+    private fun setNewAnchor(newAnchor: Anchor?)
+    {
+        Log.d(TAG, "setNewAnchor()")
 
         synchronized(anchorLock)
         {
             if (newAnchor != null)
             {
                 val anchorMap = HashMap<String, Any>()
-                anchorMap["matrix"] = FloatArray(16);
-                anchorMap["anchor"] = newAnchor;
-                anchorMap["shouldDrawAnchor"] = false;
-                anchors.add(anchorMap);
+                anchorMap["matrix"] = FloatArray(16)
+                anchorMap["anchor"] = newAnchor
+                anchorMap["shouldDrawAnchor"] = false
+                anchors.add(anchorMap)
             }
         }
     }
 
-    /** Callback function invoked when the Resolve Button is pressed.  */
     private fun onResolve()
     {
+        Log.d(TAG, "onResolve()")
+
         if (!sharedPreferences!!.getBoolean(ALLOW_SHARE_IMAGES_KEY, false))
         {
             showNoticeDialog(object : HostResolveListener
@@ -441,28 +423,27 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
 
     private fun onPrivacyAcceptedForResolve()
     {
-        clearAnchor();
-        val location = this.location!!;
+        Log.d(TAG, "onPrivacyAcceptedForResolve()")
+
+        clearAnchor()
+        val location = this.location!!
 
         currentMode = HostResolveMode.RESOLVING
-        snackbarHelper.showMessageWithDismiss(this, "Getting anchor from cloud for $location");
+        snackbarHelper.showMessageWithDismiss(this, "Getting anchor from cloud for $location")
 
-        firebaseManager?.registerNewListenerForList(
-            location
-        ) { postSnapshot ->
-            Log.d(TAG, "Resolving cloud anchor with ID");
-            Log.d(TAG, postSnapshot.toString());
-            val snapShotObj = postSnapshot as DataSnapshot;
+        firebaseManager?.registerNewListenerForList(location)
+        { postSnapshot ->
+            val snapShotObj = postSnapshot as DataSnapshot
 
-            val roomCode = snapShotObj.key.toString().toLong();
+            val roomCode = snapShotObj.key.toString().toLong()
             val valObj = snapShotObj.child("hosted_anchor_id").value
             if (valObj != null)
             {
                 val anchorId = valObj.toString()
                 if (!anchorId.isEmpty())
                 {
-                    Log.d(TAG, roomCode.toString());
-                    Log.d(TAG, anchorId);
+                    Log.d(TAG, roomCode.toString())
+                    Log.d(TAG, anchorId)
 
                     val resolveListener: CloudAnchorResolveStateListener = CloudAnchorResolveStateListener(roomCode)
 
@@ -474,24 +455,28 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
 
     private fun resetMode()
     {
+        Log.d(TAG, "resetMode()")
+
         firebaseManager?.clearRoomListener()
         hostListener = null
         snackbarHelper.hide(this)
         cloudManager.clearListeners()
-        clearAnchor();
+        clearAnchor()
     }
 
     private fun clearAnchor()
     {
+        Log.d(TAG, "clearAnchor()")
+
         if (anchors.isNotEmpty())
         {
             for(i in 0 until anchors!!.size)
             {
-                var anchorMap = anchors[i];
+                var anchorMap = anchors[i]
                 if(anchorMap.containsKey("anchor"))
                 {
-                    var anchor = anchorMap["anchor"] as Anchor;
-                    anchor.detach();
+                    var anchor = anchorMap["anchor"] as Anchor
+                    anchor.detach()
                 }
             }
             anchors.clear()
@@ -503,15 +488,17 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
         private var roomCode: Long? = null
         override fun onNewRoomCode(newRoomCode: Long?)
         {
+            Log.d("RoomCodeAndCloudAnchorIdListener", "onNewRoomCode()")
+
             Preconditions.checkState(roomCode == null, "The room code cannot have been set before.")
             roomCode = newRoomCode
             snackbarHelper.showMessageWithDismiss(this@UserCloudAnchorActivity, getString(R.string.snackbar_room_code_available))
-
-            Log.d("CloudAnchorActivty() - onNewRoomCode()", "roomCode: $roomCode")
         }
 
         override fun onError(error: DatabaseError?)
         {
+            Log.d("RoomCodeAndCloudAnchorIdListener", "onError()")
+
             if (error != null)
             {
                 Log.w(TAG, "A Firebase database error happened.", error.toException())
@@ -524,28 +511,22 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
     {
         override fun onCloudTaskComplete(anchor: Anchor?)
         {
+            Log.d("CloudAnchorResolveStateListener", "onCloudTaskComplete()")
+
             if(session != null)
             {
-                // When the anchor has been resolved, or had a final error state.
                 val cloudState = anchor?.cloudAnchorState
                 if (cloudState != null)
                 {
                     if (cloudState.isError)
                     {
-                        Log.w(
-                            TAG,
-                            "The anchor in room "
-                                    + roomCode
-                                    + " could not be resolved. The error state was "
-                                    + cloudState
-                        )
+                        Log.w("CloudAnchorResolveStateListener","The anchor in room $roomCode could not be resolved. The error state was $cloudState")
+
                         snackbarHelper.showMessageWithDismiss(this@UserCloudAnchorActivity, getString(R.string.snackbar_resolve_error, cloudState))
                         return
                     }
                 }
                 snackbarHelper.showMessageWithDismiss(this@UserCloudAnchorActivity, getString(R.string.snackbar_resolve_success))
-                Log.d(TAG, "CloudAnchorResolveStateListener - onCloudTaskComplete() - Setting new Anchor")
-
 
                 setNewAnchor(anchor)
             }
@@ -553,6 +534,8 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
 
         override fun onShowResolveMessage()
         {
+            Log.d("CloudAnchorResolveStateListener", "onShowResolveMessage()")
+
             if(session != null)
             {
                 snackbarHelper.setMaxLines(4)
@@ -563,12 +546,16 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
 
     private fun showNoticeDialog(listener: HostResolveListener?)
     {
+        Log.d(TAG, "showNoticeDialog()")
+
         val dialog: DialogFragment = PrivacyNoticeDialogFragment.createDialog(listener)
         dialog.show(supportFragmentManager, PrivacyNoticeDialogFragment::class.java.getName())
     }
 
     override fun onDialogPositiveClick(dialog: DialogFragment?)
     {
+        Log.d(TAG, "onDialogPositiveClick()")
+
         if (!sharedPreferences!!.edit().putBoolean(ALLOW_SHARE_IMAGES_KEY, true).commit())
         {
             throw AssertionError("Could not save the user preference to SharedPreferences!")
@@ -578,7 +565,7 @@ class UserCloudAnchorActivity() : AppCompatActivity(), GLSurfaceView.Renderer, N
 
     companion object
     {
-        private val TAG = CloudAnchorActivity::class.java.simpleName
+        private val TAG = UserCloudAnchorActivity::class.java.simpleName
         private val OBJECT_COLOR = floatArrayOf(53.0f, 24.0f, 255.0f, 255.0f)
         private const val PREFERENCE_FILE_KEY = "allow_sharing_images"
         private const val ALLOW_SHARE_IMAGES_KEY = "ALLOW_SHARE_IMAGES"

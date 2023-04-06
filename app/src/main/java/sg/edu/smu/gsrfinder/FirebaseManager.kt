@@ -1,42 +1,17 @@
-/*
- * Copyright 2019 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package sg.edu.smu.gsrfinder
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import com.google.common.base.Preconditions
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.*
 
-/** A helper class to manage all communications with Firebase.  */
-internal class FirebaseManager(context: Context?) {
-    /** Listener for a new room code.  */
-    internal interface RoomCodeListener {
-        /** Invoked when a new room code is available from Firebase.  */
+internal class FirebaseManager(context: Context?)
+{
+    internal interface RoomCodeListener
+    {
         fun onNewRoomCode(newRoomCode: Long?)
-
-        /** Invoked if a Firebase Database Error happened while fetching the room code.  */
         fun onError(error: DatabaseError?)
-    }
-
-    /** Listener for a new cloud anchor ID.  */
-    internal interface CloudAnchorIdListener {
-        /** Invoked when a new cloud anchor ID is available.  */
-        fun onNewCloudAnchorId(cloudAnchorId: String?)
     }
 
     private val app: FirebaseApp?
@@ -44,72 +19,67 @@ internal class FirebaseManager(context: Context?) {
     private var roomCodeRef: DatabaseReference? = null
     private var currentRoomRef: DatabaseReference? = null
     private var currentRoomListener: ValueEventListener? = null
-
-    private var listRef: DatabaseReference? = null;
+    private var listRef: DatabaseReference? = null
     private var allRoomListener: ValueEventListener? = null
-
     private var schGsrList = ArrayList<String>()
 
-    /**
-     * Default constructor for the FirebaseManager.
-     *
-     * @param context The application context.
-     */
-    init {
+    init
+    {
+        Log.d(TAG, "init")
+
         app = FirebaseApp.initializeApp(context!!)
-        if (app != null) {
+        if (app != null)
+        {
             val rootRef = FirebaseDatabase.getInstance(app).reference
             val schoolList = context.resources.getStringArray(R.array.schoolList)
-
-            // if SCIS 1 -> scis1GsrList
             val scis1GsrList = context.resources.getStringArray(R.array.scis1GsrList)
-
-            // if SCIS 2/SOE -> scis2soeGsrList
             val scis2soeGsrList = context.resources.getStringArray(R.array.scis2soeGsrList)
 
-
-
-            for (sch in schoolList) {
-                // Log.d("SCHOOL", sch)
-                if (sch == "SCIS 1") {
-                    for (gsr in scis1GsrList) {
-                        var newGsrString = sch.toString() + " " + gsr.toString()
+            for (sch in schoolList)
+            {
+                if (sch == "SCIS 1")
+                {
+                    for (gsr in scis1GsrList)
+                    {
+                        var newGsrString = "$sch $gsr"
                         Log.d("HERE", newGsrString)
-                        //hotspotListRef = rootRef.child(newGsrString)
                         schGsrList.add(newGsrString)
                     }
                 }
-                else {
-                    for (gsr in scis2soeGsrList) {
-                        var newGsrString = sch.toString() + " " + gsr.toString()
-                        //hotspotListRef = rootRef.child(newGsrString)
+                else
+                {
+                    for (gsr in scis2soeGsrList)
+                    {
+                        var newGsrString = "$sch $gsr"
                         schGsrList.add(newGsrString)
                     }
                 }
             }
-
-            //hotspotListRef = rootRef.child("soe")
             roomCodeRef = rootRef.child(ROOT_LAST_ROOM_CODE)
             DatabaseReference.goOnline()
-        } else {
+        }
+        else
+        {
             Log.d(TAG, "Could not connect to Firebase Database!")
             hotspotListRef = null
             roomCodeRef = null
         }
     }
 
-    /**
-     * Gets a new room code from the Firebase Database. Invokes the listener method when a new room
-     * code is available.
-     */
-    fun getNewRoomCode(listener: RoomCodeListener) {
+    fun getNewRoomCode(listener: RoomCodeListener)
+    {
+        Log.d(TAG, "getNewRoomCode()")
+
         Preconditions.checkNotNull(app, "Firebase App was null")
         roomCodeRef!!.runTransaction(
-            object : Transaction.Handler {
-                override fun doTransaction(currentData: MutableData): Transaction.Result {
+            object : Transaction.Handler
+            {
+                override fun doTransaction(currentData: MutableData): Transaction.Result
+                {
                     var nextCode = java.lang.Long.valueOf(1)
                     val currVal = currentData.value
-                    if (currVal != null) {
+                    if (currVal != null)
+                    {
                         val lastCode = java.lang.Long.valueOf(currVal.toString())
                         nextCode = lastCode + 1
                     }
@@ -117,12 +87,10 @@ internal class FirebaseManager(context: Context?) {
                     return Transaction.success(currentData)
                 }
 
-                override fun onComplete(
-                    error: DatabaseError?,
-                    committed: Boolean,
-                    currentData: DataSnapshot?
-                ) {
-                    if (!committed) {
+                override fun onComplete(error: DatabaseError?,committed: Boolean,currentData: DataSnapshot?)
+                {
+                    if (!committed)
+                    {
                         listener.onError(error)
                         return
                     }
@@ -132,10 +100,13 @@ internal class FirebaseManager(context: Context?) {
             })
     }
 
-    /** Stores the given anchor ID in the given room code.  */
-    fun storeAnchorIdInRoom(hotspot: String, roomCode: Long, cloudAnchorId: String?) {
+    fun storeAnchorIdInRoom(hotspot: String, roomCode: Long, cloudAnchorId: String?)
+    {
+        Log.d(TAG, "storeAnchorIdInRoom()")
+
         Preconditions.checkNotNull(app, "Firebase App was null")
-        if (hotspot in schGsrList) {
+        if (hotspot in schGsrList)
+        {
             val rootRef = FirebaseDatabase.getInstance(app!!).reference
             hotspotListRef = rootRef.child(hotspot)
         }
@@ -145,11 +116,10 @@ internal class FirebaseManager(context: Context?) {
         roomRef.child(KEY_TIMESTAMP).setValue(System.currentTimeMillis())
     }
 
-    /**
-     * Registers a new listener for the given room code. The listener is invoked whenever the data for
-     * the room code is changed.
-     */
-    fun registerNewListenerForList(collect_list: String, listener: (Any) -> Unit) {
+    fun registerNewListenerForList(collect_list: String, listener: (Any) -> Unit)
+    {
+        Log.d(TAG, "registerNewListenerForList()")
+
         Preconditions.checkNotNull(app, "Firebase App was null")
         clearRoomListener()
         if(app != null)
@@ -159,102 +129,46 @@ internal class FirebaseManager(context: Context?) {
 
             allRoomListener = object : ValueEventListener
             {
-                override fun onDataChange(snapshot: DataSnapshot) {
-
-                    Log.d(TAG,"Printing Snapshot.toString()");
-                    Log.d(TAG, snapshot.toString());
+                override fun onDataChange(snapshot: DataSnapshot)
+                {
                     if(snapshot.exists())
                     {
                         for (postSnapshot in snapshot.children) {
                             if(postSnapshot != null)
                             {
-                                listener.invoke(postSnapshot);
+                                listener.invoke(postSnapshot)
                             }
-//                            val valObj = postSnapshot.child(KEY_ANCHOR_ID).value
-//                            if (valObj != null) {
-//                                val anchorId = valObj.toString()
-//                                if (!anchorId.isEmpty()) {
-//                                    listener.invoke(anchorId)
-//                                }
-//                            }
                         }
                     }
                 }
-
-                override fun onCancelled(databaseError: DatabaseError) {
+                override fun onCancelled(databaseError: DatabaseError)
+                {
                     Log.w(TAG, "The Firebase operation was cancelled.", databaseError.toException())
                 }
             }
-
-//            currentRoomRef = hotspotListRef!!.child(roomCode.toString())
-//            currentRoomListener = object : ValueEventListener {
-//                override fun onDataChange(dataSnapshot: DataSnapshot) {
-//                    val valObj = dataSnapshot.child(KEY_ANCHOR_ID).value
-//                    if (valObj != null) {
-//                        val anchorId = valObj.toString()
-//                        if (!anchorId.isEmpty()) {
-//                            listener.invoke(anchorId)
-//                        }
-//                    }
-//                }
-//
-//                override fun onCancelled(databaseError: DatabaseError) {
-//                    Log.w(TAG, "The Firebase operation was cancelled.", databaseError.toException())
-//                }
-//            }
             listRef!!.addValueEventListener(allRoomListener as ValueEventListener)
         }
     }
 
-    /**
-     * Registers a new listener for the given room code. The listener is invoked whenever the data for
-     * the room code is changed.
-     */
-    fun registerNewListenerForRoom(roomCode: Long, listener: (Any) -> Unit) {
-        Preconditions.checkNotNull(app, "Firebase App was null")
-        clearRoomListener()
-        currentRoomRef = hotspotListRef!!.child(roomCode.toString())
-        currentRoomListener = object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val valObj = dataSnapshot.child(KEY_ANCHOR_ID).value
-                if (valObj != null) {
-                    val anchorId = valObj.toString()
-                    if (!anchorId.isEmpty()) {
-                        listener.invoke(anchorId)
-                    }
-                }
-            }
+    fun clearRoomListener()
+    {
+        Log.d(TAG, "clearRoomListener()")
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.w(TAG, "The Firebase operation was cancelled.", databaseError.toException())
-            }
-        }
-        currentRoomRef!!.addValueEventListener(currentRoomListener as ValueEventListener)
-    }
-
-    /**
-     * Resets the current room listener registered using [.registerNewListenerForRoom].
-     */
-    fun clearRoomListener() {
-        if (currentRoomListener != null && currentRoomRef != null) {
+        if (currentRoomListener != null && currentRoomRef != null)
+        {
             currentRoomRef!!.removeEventListener(currentRoomListener!!)
             currentRoomListener = null
             currentRoomRef = null
         }
     }
 
-    companion object {
-        private val TAG =
-            CloudAnchorActivity::class.java.simpleName + "." + FirebaseManager::class.java.simpleName
-
-        // Names of the nodes used in the Firebase Database
-        private const val ROOT_FIREBASE_HOTSPOTS = "hotspot_list"
+    companion object
+    {
+        private val TAG = FirebaseManager::class.java.simpleName
         private const val ROOT_LAST_ROOM_CODE = "last_room_code"
-
-        // Some common keys and values used when writing to the Firebase Database.
         private const val KEY_DISPLAY_NAME = "display_name"
         private const val KEY_ANCHOR_ID = "hosted_anchor_id"
         private const val KEY_TIMESTAMP = "updated_at_timestamp"
-        private const val DISPLAY_NAME_VALUE = "Android EAP Sample"
+        private const val DISPLAY_NAME_VALUE = "SMU_GSR"
     }
 }
