@@ -8,11 +8,14 @@ Enable ARCore API and ARCore Cloud Anchor API on Google Cloud Console
 
 ## API Keys
 You will need to create your APIs and store the API keys in your ```local.properties``` file. 
+
 https://console.cloud.google.com/project/_/google/maps-apis/credentials?utm_source=Docs_Credentials&_gl=1*4kavcg*_ga*NDUyNzk4NDgzLjE2NzU3NTgzOTg.*_ga_NRWSTWS78N*MTY4MTEwMTEyOC4xMS4wLjE2ODExMDExMzEuMC4wLjA.
-MAPS_API_KEY=<Replace with your api key>
+
+MAPS_API_KEY=Replace with your api key
 
 On Google Cloud Console, under Credentials, create New Credentials and then API key. 
-ARCORE_API_KEY=<Replace with your api key>
+
+ARCORE_API_KEY=Replace with your api key
 
 ## Firebase Configuration
 https://firebase.google.com/
