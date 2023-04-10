@@ -1,5 +1,5 @@
-# GsrFinder
-SMU Gsr Finder  App
+# GSRFinder
+SCIS GSR Finder  App
 
 ## Pre-requsite
 https://console.cloud.google.com/
@@ -11,11 +11,11 @@ You will need to create your APIs and store the API keys in your ```local.proper
 
 https://console.cloud.google.com/project/_/google/maps-apis/credentials?utm_source=Docs_Credentials&_gl=1*4kavcg*_ga*NDUyNzk4NDgzLjE2NzU3NTgzOTg.*_ga_NRWSTWS78N*MTY4MTEwMTEyOC4xMS4wLjE2ODExMDExMzEuMC4wLjA.
 
-MAPS_API_KEY=Replace with your api key
+MAPS_API_KEY="Replace with your api key"
 
 On Google Cloud Console, under Credentials, create New Credentials and then API key. 
 
-ARCORE_API_KEY=Replace with your api key
+ARCORE_API_KEY="Replace with your api key"
 
 ## Firebase Configuration
 https://firebase.google.com/
